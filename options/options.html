@@ -51,6 +51,647 @@
         <input type="radio" id="ds_storeOff" name="ds_store" value="off" checked/>
         <label for="ds_storeOff">Off</label>
     </div>
+    <div class="browser-style title-option">
+        CVS
+        <input type="radio" id="cvsOn" name="cvs" value="on"/>
+        <label for="cvsOn">On</label>
+
+        <input type="radio" id="cvsOff" name="cvs" value="off" checked/>
+        <label for="cvsOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        .bzr (Bazaar)
+        <input type="radio" id="bzrOn" name="bzr" value="on"/>
+        <label for="bzrOn">On</label>
+
+        <input type="radio" id="bzrOff" name="bzr" value="off" checked/>
+        <label for="bzrOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        .svn/entries (legacy)
+        <input type="radio" id="svn_entriesOn" name="svn_entries" value="on"/>
+        <label for="svn_entriesOn">On</label>
+
+        <input type="radio" id="svn_entriesOff" name="svn_entries" value="off" checked/>
+        <label for="svn_entriesOff">Off</label>
+    </div>
+</section>
+<section class="option">
+    <div class="browser-style title-option">
+        Configuration &amp; Secrets
+    </div>
+    <div class="browser-style title-option">
+        .env.local
+        <input type="radio" id="env_localOn" name="env_local" value="on"/>
+        <label for="env_localOn">On</label>
+        <input type="radio" id="env_localOff" name="env_local" value="off" checked/>
+        <label for="env_localOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        .env.production
+        <input type="radio" id="env_productionOn" name="env_production" value="on"/>
+        <label for="env_productionOn">On</label>
+        <input type="radio" id="env_productionOff" name="env_production" value="off" checked/>
+        <label for="env_productionOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        .env backup (.bak, .old, .save)
+        <input type="radio" id="env_backupOn" name="env_backup" value="on"/>
+        <label for="env_backupOn">On</label>
+        <input type="radio" id="env_backupOff" name="env_backup" value="off" checked/>
+        <label for="env_backupOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        .env.dev / .env.staging / .env.test
+        <input type="radio" id="env_devOn" name="env_dev" value="on"/>
+        <label for="env_devOn">On</label>
+        <input type="radio" id="env_devOff" name="env_dev" value="off" checked/>
+        <label for="env_devOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        .npmrc (auth tokens)
+        <input type="radio" id="npmrcOn" name="npmrc" value="on"/>
+        <label for="npmrcOn">On</label>
+        <input type="radio" id="npmrcOff" name="npmrc" value="off" checked/>
+        <label for="npmrcOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        .dockerenv
+        <input type="radio" id="dockerenvOn" name="dockerenv" value="on"/>
+        <label for="dockerenvOn">On</label>
+        <input type="radio" id="dockerenvOff" name="dockerenv" value="off" checked/>
+        <label for="dockerenvOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        docker-compose.yml
+        <input type="radio" id="docker_composeOn" name="docker_compose" value="on"/>
+        <label for="docker_composeOn">On</label>
+        <input type="radio" id="docker_composeOff" name="docker_compose" value="off" checked/>
+        <label for="docker_composeOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Dockerfile
+        <input type="radio" id="dockerfileOn" name="dockerfile" value="on"/>
+        <label for="dockerfileOn">On</label>
+        <input type="radio" id="dockerfileOff" name="dockerfile" value="off" checked/>
+        <label for="dockerfileOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        wp-config.php
+        <input type="radio" id="wp_configOn" name="wp_config" value="on"/>
+        <label for="wp_configOn">On</label>
+        <input type="radio" id="wp_configOff" name="wp_config" value="off" checked/>
+        <label for="wp_configOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        auth.json (Composer)
+        <input type="radio" id="composer_authOn" name="composer_auth" value="on"/>
+        <label for="composer_authOn">On</label>
+        <input type="radio" id="composer_authOff" name="composer_auth" value="off" checked/>
+        <label for="composer_authOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Firebase config
+        <input type="radio" id="firebaseOn" name="firebase" value="on"/>
+        <label for="firebaseOn">On</label>
+        <input type="radio" id="firebaseOff" name="firebase" value="off" checked/>
+        <label for="firebaseOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        terraform.tfstate
+        <input type="radio" id="terraform_stateOn" name="terraform_state" value="on"/>
+        <label for="terraform_stateOn">On</label>
+        <input type="radio" id="terraform_stateOff" name="terraform_state" value="off" checked/>
+        <label for="terraform_stateOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        terraform.tfvars
+        <input type="radio" id="terraform_varsOn" name="terraform_vars" value="on"/>
+        <label for="terraform_varsOn">On</label>
+        <input type="radio" id="terraform_varsOff" name="terraform_vars" value="off" checked/>
+        <label for="terraform_varsOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Rails secrets (database.yml, secrets.yml, master.key)
+        <input type="radio" id="rails_secretsOn" name="rails_secrets" value="on"/>
+        <label for="rails_secretsOn">On</label>
+        <input type="radio" id="rails_secretsOff" name="rails_secrets" value="off" checked/>
+        <label for="rails_secretsOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Django settings (SECRET_KEY)
+        <input type="radio" id="django_settingsOn" name="django_settings" value="on"/>
+        <label for="django_settingsOn">On</label>
+        <input type="radio" id="django_settingsOff" name="django_settings" value="off" checked/>
+        <label for="django_settingsOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Laravel log
+        <input type="radio" id="laravel_logOn" name="laravel_log" value="on"/>
+        <label for="laravel_logOn">On</label>
+        <input type="radio" id="laravel_logOff" name="laravel_log" value="off" checked/>
+        <label for="laravel_logOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        SSH keys
+        <input type="radio" id="ssh_keysOn" name="ssh_keys" value="on"/>
+        <label for="ssh_keysOn">On</label>
+        <input type="radio" id="ssh_keysOff" name="ssh_keys" value="off" checked/>
+        <label for="ssh_keysOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        AWS credentials
+        <input type="radio" id="aws_credentialsOn" name="aws_credentials" value="on"/>
+        <label for="aws_credentialsOn">On</label>
+        <input type="radio" id="aws_credentialsOff" name="aws_credentials" value="off" checked/>
+        <label for="aws_credentialsOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Kubernetes config
+        <input type="radio" id="kube_configOn" name="kube_config" value="on"/>
+        <label for="kube_configOn">On</label>
+        <input type="radio" id="kube_configOff" name="kube_config" value="off" checked/>
+        <label for="kube_configOff">Off</label>
+    </div>
+</section>
+<section class="option">
+    <div class="browser-style title-option">
+        Backup &amp; Archive Files
+    </div>
+    <div class="browser-style title-option">
+        SQL dump (dump.sql, backup.sql, etc.)
+        <input type="radio" id="sql_dumpOn" name="sql_dump" value="on"/>
+        <label for="sql_dumpOn">On</label>
+        <input type="radio" id="sql_dumpOff" name="sql_dump" value="off" checked/>
+        <label for="sql_dumpOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Backup archives (.zip, .tar.gz)
+        <input type="radio" id="backup_archiveOn" name="backup_archive" value="on"/>
+        <label for="backup_archiveOn">On</label>
+        <input type="radio" id="backup_archiveOff" name="backup_archive" value="off" checked/>
+        <label for="backup_archiveOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        PHP config backups (.bak, .old)
+        <input type="radio" id="php_backupOn" name="php_backup" value="on"/>
+        <label for="php_backupOn">On</label>
+        <input type="radio" id="php_backupOff" name="php_backup" value="off" checked/>
+        <label for="php_backupOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        .htaccess backup
+        <input type="radio" id="htaccess_backupOn" name="htaccess_backup" value="on"/>
+        <label for="htaccess_backupOn">On</label>
+        <input type="radio" id="htaccess_backupOff" name="htaccess_backup" value="off" checked/>
+        <label for="htaccess_backupOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        web.config backup
+        <input type="radio" id="web_config_backupOn" name="web_config_backup" value="on"/>
+        <label for="web_config_backupOn">On</label>
+        <input type="radio" id="web_config_backupOff" name="web_config_backup" value="off" checked/>
+        <label for="web_config_backupOff">Off</label>
+    </div>
+</section>
+<section class="option">
+    <div class="browser-style title-option">
+        Debug &amp; Admin Panels
+    </div>
+    <div class="browser-style title-option">
+        phpinfo()
+        <input type="radio" id="phpinfoOn" name="phpinfo" value="on"/>
+        <label for="phpinfoOn">On</label>
+        <input type="radio" id="phpinfoOff" name="phpinfo" value="off" checked/>
+        <label for="phpinfoOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        PHP error log
+        <input type="radio" id="php_errorsOn" name="php_errors" value="on"/>
+        <label for="php_errorsOn">On</label>
+        <input type="radio" id="php_errorsOff" name="php_errors" value="off" checked/>
+        <label for="php_errorsOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Adminer
+        <input type="radio" id="adminerOn" name="adminer" value="on"/>
+        <label for="adminerOn">On</label>
+        <input type="radio" id="adminerOff" name="adminer" value="off" checked/>
+        <label for="adminerOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        phpMyAdmin
+        <input type="radio" id="phpmyadminOn" name="phpmyadmin" value="on"/>
+        <label for="phpmyadminOn">On</label>
+        <input type="radio" id="phpmyadminOff" name="phpmyadmin" value="off" checked/>
+        <label for="phpmyadminOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Spring Actuator
+        <input type="radio" id="spring_actuatorOn" name="spring_actuator" value="on"/>
+        <label for="spring_actuatorOn">On</label>
+        <input type="radio" id="spring_actuatorOff" name="spring_actuator" value="off" checked/>
+        <label for="spring_actuatorOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Symfony profiler
+        <input type="radio" id="symfony_profilerOn" name="symfony_profiler" value="on"/>
+        <label for="symfony_profilerOn">On</label>
+        <input type="radio" id="symfony_profilerOff" name="symfony_profiler" value="off" checked/>
+        <label for="symfony_profilerOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Laravel Telescope
+        <input type="radio" id="laravel_telescopeOn" name="laravel_telescope" value="on"/>
+        <label for="laravel_telescopeOn">On</label>
+        <input type="radio" id="laravel_telescopeOff" name="laravel_telescope" value="off" checked/>
+        <label for="laravel_telescopeOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Rails info
+        <input type="radio" id="rails_infoOn" name="rails_info" value="on"/>
+        <label for="rails_infoOn">On</label>
+        <input type="radio" id="rails_infoOff" name="rails_info" value="off" checked/>
+        <label for="rails_infoOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Django debug toolbar
+        <input type="radio" id="django_debugOn" name="django_debug" value="on"/>
+        <label for="django_debugOn">On</label>
+        <input type="radio" id="django_debugOff" name="django_debug" value="off" checked/>
+        <label for="django_debugOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Elmah (.NET errors)
+        <input type="radio" id="elmahOn" name="elmah" value="on"/>
+        <label for="elmahOn">On</label>
+        <input type="radio" id="elmahOff" name="elmah" value="off" checked/>
+        <label for="elmahOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Grafana / Metrics
+        <input type="radio" id="grafanaOn" name="grafana" value="on"/>
+        <label for="grafanaOn">On</label>
+        <input type="radio" id="grafanaOff" name="grafana" value="off" checked/>
+        <label for="grafanaOff">Off</label>
+    </div>
+</section>
+<section class="option">
+    <div class="browser-style title-option">
+        Server Configuration
+    </div>
+    <div class="browser-style title-option">
+        .htaccess
+        <input type="radio" id="htaccessOn" name="htaccess" value="on"/>
+        <label for="htaccessOn">On</label>
+        <input type="radio" id="htaccessOff" name="htaccess" value="off" checked/>
+        <label for="htaccessOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        .htpasswd
+        <input type="radio" id="htpasswdOn" name="htpasswd" value="on"/>
+        <label for="htpasswdOn">On</label>
+        <input type="radio" id="htpasswdOff" name="htpasswd" value="off" checked/>
+        <label for="htpasswdOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        nginx.conf
+        <input type="radio" id="nginx_confOn" name="nginx_conf" value="on"/>
+        <label for="nginx_confOn">On</label>
+        <input type="radio" id="nginx_confOff" name="nginx_conf" value="off" checked/>
+        <label for="nginx_confOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Apache server-status
+        <input type="radio" id="server_statusOn" name="server_status" value="on"/>
+        <label for="server_statusOn">On</label>
+        <input type="radio" id="server_statusOff" name="server_status" value="off" checked/>
+        <label for="server_statusOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Nginx status
+        <input type="radio" id="nginx_statusOn" name="nginx_status" value="on"/>
+        <label for="nginx_statusOn">On</label>
+        <input type="radio" id="nginx_statusOff" name="nginx_status" value="off" checked/>
+        <label for="nginx_statusOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        web.config
+        <input type="radio" id="web_configOn" name="web_config" value="on"/>
+        <label for="web_configOn">On</label>
+        <input type="radio" id="web_configOff" name="web_config" value="off" checked/>
+        <label for="web_configOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        crossdomain.xml
+        <input type="radio" id="crossdomainOn" name="crossdomain" value="on"/>
+        <label for="crossdomainOn">On</label>
+        <input type="radio" id="crossdomainOff" name="crossdomain" value="off" checked/>
+        <label for="crossdomainOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        robots.txt (sensitive path disclosure)
+        <input type="radio" id="robots_txtOn" name="robots_txt" value="on"/>
+        <label for="robots_txtOn">On</label>
+        <input type="radio" id="robots_txtOff" name="robots_txt" value="off" checked/>
+        <label for="robots_txtOff">Off</label>
+    </div>
+</section>
+<section class="option">
+    <div class="browser-style title-option">
+        API &amp; Documentation
+    </div>
+    <div class="browser-style title-option">
+        Swagger / OpenAPI
+        <input type="radio" id="swaggerOn" name="swagger" value="on"/>
+        <label for="swaggerOn">On</label>
+        <input type="radio" id="swaggerOff" name="swagger" value="off" checked/>
+        <label for="swaggerOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        GraphQL endpoint
+        <input type="radio" id="graphqlOn" name="graphql" value="on"/>
+        <label for="graphqlOn">On</label>
+        <input type="radio" id="graphqlOff" name="graphql" value="off" checked/>
+        <label for="graphqlOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        WSDL
+        <input type="radio" id="wsdlOn" name="wsdl" value="on"/>
+        <label for="wsdlOn">On</label>
+        <input type="radio" id="wsdlOff" name="wsdl" value="off" checked/>
+        <label for="wsdlOff">Off</label>
+    </div>
+</section>
+<section class="option">
+    <div class="browser-style title-option">
+        CMS Detection
+    </div>
+    <div class="browser-style title-option">
+        WordPress login
+        <input type="radio" id="wp_loginOn" name="wp_login" value="on"/>
+        <label for="wp_loginOn">On</label>
+        <input type="radio" id="wp_loginOff" name="wp_login" value="off" checked/>
+        <label for="wp_loginOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        WordPress XML-RPC
+        <input type="radio" id="wp_xmlrpcOn" name="wp_xmlrpc" value="on"/>
+        <label for="wp_xmlrpcOn">On</label>
+        <input type="radio" id="wp_xmlrpcOff" name="wp_xmlrpc" value="off" checked/>
+        <label for="wp_xmlrpcOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        WordPress user enumeration
+        <input type="radio" id="wp_user_enumOn" name="wp_user_enum" value="on"/>
+        <label for="wp_user_enumOn">On</label>
+        <input type="radio" id="wp_user_enumOff" name="wp_user_enum" value="off" checked/>
+        <label for="wp_user_enumOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Joomla admin
+        <input type="radio" id="joomlaOn" name="joomla" value="on"/>
+        <label for="joomlaOn">On</label>
+        <input type="radio" id="joomlaOff" name="joomla" value="off" checked/>
+        <label for="joomlaOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Drupal
+        <input type="radio" id="drupalOn" name="drupal" value="on"/>
+        <label for="drupalOn">On</label>
+        <input type="radio" id="drupalOff" name="drupal" value="off" checked/>
+        <label for="drupalOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Magento config
+        <input type="radio" id="magentoOn" name="magento" value="on"/>
+        <label for="magentoOn">On</label>
+        <input type="radio" id="magentoOff" name="magento" value="off" checked/>
+        <label for="magentoOff">Off</label>
+    </div>
+</section>
+<section class="option">
+    <div class="browser-style title-option">
+        CI/CD &amp; DevOps
+    </div>
+    <div class="browser-style title-option">
+        Jenkinsfile
+        <input type="radio" id="jenkinsfileOn" name="jenkinsfile" value="on"/>
+        <label for="jenkinsfileOn">On</label>
+        <input type="radio" id="jenkinsfileOff" name="jenkinsfile" value="off" checked/>
+        <label for="jenkinsfileOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        .gitlab-ci.yml
+        <input type="radio" id="gitlab_ciOn" name="gitlab_ci" value="on"/>
+        <label for="gitlab_ciOn">On</label>
+        <input type="radio" id="gitlab_ciOff" name="gitlab_ci" value="off" checked/>
+        <label for="gitlab_ciOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        .travis.yml
+        <input type="radio" id="travis_ciOn" name="travis_ci" value="on"/>
+        <label for="travis_ciOn">On</label>
+        <input type="radio" id="travis_ciOff" name="travis_ci" value="off" checked/>
+        <label for="travis_ciOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        GitHub Actions
+        <input type="radio" id="github_actionsOn" name="github_actions" value="on"/>
+        <label for="github_actionsOn">On</label>
+        <input type="radio" id="github_actionsOff" name="github_actions" value="off" checked/>
+        <label for="github_actionsOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        CircleCI config
+        <input type="radio" id="circleciOn" name="circleci" value="on"/>
+        <label for="circleciOn">On</label>
+        <input type="radio" id="circleciOff" name="circleci" value="off" checked/>
+        <label for="circleciOff">Off</label>
+    </div>
+</section>
+<section class="option">
+    <div class="browser-style title-option">
+        Package &amp; Dependency Files
+    </div>
+    <div class="browser-style title-option">
+        package.json (Node.js)
+        <input type="radio" id="package_jsonOn" name="package_json" value="on"/>
+        <label for="package_jsonOn">On</label>
+        <input type="radio" id="package_jsonOff" name="package_json" value="off" checked/>
+        <label for="package_jsonOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        package-lock.json
+        <input type="radio" id="package_lockOn" name="package_lock" value="on"/>
+        <label for="package_lockOn">On</label>
+        <input type="radio" id="package_lockOff" name="package_lock" value="off" checked/>
+        <label for="package_lockOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        composer.json (PHP)
+        <input type="radio" id="composer_jsonOn" name="composer_json" value="on"/>
+        <label for="composer_jsonOn">On</label>
+        <input type="radio" id="composer_jsonOff" name="composer_json" value="off" checked/>
+        <label for="composer_jsonOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Gemfile (Ruby)
+        <input type="radio" id="gemfileOn" name="gemfile" value="on"/>
+        <label for="gemfileOn">On</label>
+        <input type="radio" id="gemfileOff" name="gemfile" value="off" checked/>
+        <label for="gemfileOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        requirements.txt (Python)
+        <input type="radio" id="requirements_txtOn" name="requirements_txt" value="on"/>
+        <label for="requirements_txtOn">On</label>
+        <input type="radio" id="requirements_txtOff" name="requirements_txt" value="off" checked/>
+        <label for="requirements_txtOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        pom.xml (Maven/Java)
+        <input type="radio" id="pom_xmlOn" name="pom_xml" value="on"/>
+        <label for="pom_xmlOn">On</label>
+        <input type="radio" id="pom_xmlOff" name="pom_xml" value="off" checked/>
+        <label for="pom_xmlOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Cargo.toml (Rust)
+        <input type="radio" id="cargo_tomlOn" name="cargo_toml" value="on"/>
+        <label for="cargo_tomlOn">On</label>
+        <input type="radio" id="cargo_tomlOff" name="cargo_toml" value="off" checked/>
+        <label for="cargo_tomlOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        go.sum / go.mod (Go)
+        <input type="radio" id="go_sumOn" name="go_sum" value="on"/>
+        <label for="go_sumOn">On</label>
+        <input type="radio" id="go_sumOff" name="go_sum" value="off" checked/>
+        <label for="go_sumOff">Off</label>
+    </div>
+</section>
+<section class="option">
+    <div class="browser-style title-option">
+        Information Disclosure
+    </div>
+    <div class="browser-style title-option">
+        Directory listing
+        <input type="radio" id="dir_listingOn" name="dir_listing" value="on"/>
+        <label for="dir_listingOn">On</label>
+        <input type="radio" id="dir_listingOff" name="dir_listing" value="off" checked/>
+        <label for="dir_listingOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        JavaScript source maps
+        <input type="radio" id="source_mapsOn" name="source_maps" value="on"/>
+        <label for="source_mapsOn">On</label>
+        <input type="radio" id="source_mapsOff" name="source_maps" value="off" checked/>
+        <label for="source_mapsOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Sitemap XML
+        <input type="radio" id="sitemapOn" name="sitemap" value="on"/>
+        <label for="sitemapOn">On</label>
+        <input type="radio" id="sitemapOff" name="sitemap" value="off" checked/>
+        <label for="sitemapOff">Off</label>
+    </div>
+</section>
+<section class="option">
+    <div class="browser-style title-option">
+        Additional Checks
+    </div>
+    <div class="browser-style title-option">
+        App settings (settings.yml, application.properties)
+        <input type="radio" id="app_settingsOn" name="app_settings" value="on"/>
+        <label for="app_settingsOn">On</label>
+        <input type="radio" id="app_settingsOff" name="app_settings" value="off" checked/>
+        <label for="app_settingsOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Config/Secrets JSON (config.json, secrets.json, credentials.json)
+        <input type="radio" id="config_jsonOn" name="config_json" value="on"/>
+        <label for="config_jsonOn">On</label>
+        <input type="radio" id="config_jsonOff" name="config_json" value="off" checked/>
+        <label for="config_jsonOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        config.php (exposed server config)
+        <input type="radio" id="config_phpOn" name="config_php" value="on"/>
+        <label for="config_phpOn">On</label>
+        <input type="radio" id="config_phpOff" name="config_php" value="off" checked/>
+        <label for="config_phpOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Private keys (PEM, .key files)
+        <input type="radio" id="pem_keysOn" name="pem_keys" value="on"/>
+        <label for="pem_keysOn">On</label>
+        <input type="radio" id="pem_keysOff" name="pem_keys" value="off" checked/>
+        <label for="pem_keysOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Google Cloud credentials
+        <input type="radio" id="google_cloudOn" name="google_cloud" value="on"/>
+        <label for="google_cloudOn">On</label>
+        <input type="radio" id="google_cloudOff" name="google_cloud" value="off" checked/>
+        <label for="google_cloudOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        .gitignore / .gitmodules
+        <input type="radio" id="gitignoreOn" name="gitignore" value="on"/>
+        <label for="gitignoreOn">On</label>
+        <input type="radio" id="gitignoreOff" name="gitignore" value="off" checked/>
+        <label for="gitignoreOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Admin panel (/admin/, login.php)
+        <input type="radio" id="admin_panelOn" name="admin_panel" value="on"/>
+        <label for="admin_panelOn">On</label>
+        <input type="radio" id="admin_panelOff" name="admin_panel" value="off" checked/>
+        <label for="admin_panelOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Debug/test directories (/debug/, /test/, /dev/, /console/)
+        <input type="radio" id="debug_dirsOn" name="debug_dirs" value="on"/>
+        <label for="debug_dirsOn">On</label>
+        <input type="radio" id="debug_dirsOff" name="debug_dirs" value="off" checked/>
+        <label for="debug_dirsOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        Server log files (access.log, server.log)
+        <input type="radio" id="log_filesOn" name="log_files" value="on"/>
+        <label for="log_filesOn">On</label>
+        <input type="radio" id="log_filesOff" name="log_files" value="off" checked/>
+        <label for="log_filesOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        API config endpoints (/api/keys, /api/config)
+        <input type="radio" id="api_configOn" name="api_config" value="on"/>
+        <label for="api_configOn">On</label>
+        <input type="radio" id="api_configOff" name="api_config" value="off" checked/>
+        <label for="api_configOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        clientaccesspolicy.xml (Silverlight)
+        <input type="radio" id="client_access_policyOn" name="client_access_policy" value="on"/>
+        <label for="client_access_policyOn">On</label>
+        <input type="radio" id="client_access_policyOff" name="client_access_policy" value="off" checked/>
+        <label for="client_access_policyOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        README / INSTALL docs
+        <input type="radio" id="readme_docsOn" name="readme_docs" value="on"/>
+        <label for="readme_docsOn">On</label>
+        <input type="radio" id="readme_docsOff" name="readme_docs" value="off" checked/>
+        <label for="readme_docsOff">Off</label>
+    </div>
+    <div class="browser-style title-option">
+        CSV data exports
+        <input type="radio" id="csv_exportOn" name="csv_export" value="on"/>
+        <label for="csv_exportOn">On</label>
+        <input type="radio" id="csv_exportOff" name="csv_export" value="off" checked/>
+        <label for="csv_exportOff">Off</label>
+    </div>
 </section>
 <section class="option">
     <div class="browser-style title-option">

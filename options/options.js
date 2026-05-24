@@ -1,3 +1,41 @@
+// List of all function toggle IDs (must match CHECK_REGISTRY ids in content_script.js)
+const FUNCTION_IDS = [
+    // VCS
+    "git", "svn", "hg", "env", "ds_store", "cvs", "bzr", "svn_entries",
+    // Secrets
+    "env_local", "env_production", "env_backup", "env_dev",
+    "npmrc", "dockerenv", "docker_compose", "dockerfile",
+    "wp_config", "composer_auth", "firebase",
+    "terraform_state", "terraform_vars",
+    "rails_secrets", "django_settings", "laravel_log",
+    "ssh_keys", "aws_credentials", "kube_config",
+    // Backup
+    "sql_dump", "backup_archive", "php_backup", "htaccess_backup", "web_config_backup",
+    // Debug
+    "phpinfo", "php_errors", "adminer", "phpmyadmin",
+    "spring_actuator", "symfony_profiler", "laravel_telescope",
+    "rails_info", "django_debug", "elmah", "grafana",
+    // Server
+    "htaccess", "htpasswd", "nginx_conf", "server_status", "nginx_status",
+    "web_config", "crossdomain", "robots_txt",
+    // API
+    "swagger", "graphql", "wsdl",
+    // CMS
+    "wp_login", "wp_xmlrpc", "wp_user_enum", "joomla", "drupal", "magento",
+    // CI/CD
+    "jenkinsfile", "gitlab_ci", "travis_ci", "github_actions", "circleci",
+    // Packages
+    "package_json", "package_lock", "composer_json", "gemfile",
+    "requirements_txt", "pom_xml", "cargo_toml", "go_sum",
+    // Info Disclosure
+    "dir_listing", "source_maps", "sitemap",
+    // Additional (from guide)
+    "app_settings", "config_json", "config_php", "pem_keys", "google_cloud",
+    "gitignore", "admin_panel", "debug_dirs", "log_files",
+    "api_config", "client_access_policy",
+    "readme_docs", "csv_export"
+];
+
 function set_gui(options) {
     let colors = document.getElementById("color");
     for (let i = 0; i < colors.length; i++) {
@@ -5,16 +43,17 @@ function set_gui(options) {
             document.getElementById("color").selectedIndex = i;
         }
     }
-    document.getElementById("gitOn").checked = options.functions.git;
-    document.getElementById("gitOff").checked = !options.functions.git;
-    document.getElementById("svnOn").checked = options.functions.svn;
-    document.getElementById("svnOff").checked = !options.functions.svn;
-    document.getElementById("hgOn").checked = options.functions.hg;
-    document.getElementById("hgOff").checked = !options.functions.hg;
-    document.getElementById("envOn").checked = options.functions.env;
-    document.getElementById("envOff").checked = !options.functions.env;
-    document.getElementById("ds_storeOn").checked = options.functions.ds_store;
-    document.getElementById("ds_storeOff").checked = !options.functions.ds_store;
+
+    // Set function toggles dynamically
+    for (const id of FUNCTION_IDS) {
+        const onEl = document.getElementById(id + "On");
+        const offEl = document.getElementById(id + "Off");
+        if (onEl && offEl) {
+            onEl.checked = options.functions[id];
+            offEl.checked = !options.functions[id];
+        }
+    }
+
     document.getElementById("debugOn").checked = options.debug;
     document.getElementById("debugOff").checked = !options.debug;
     document.getElementById("checkFailedOn").checked = options.check_failed;
@@ -40,44 +79,14 @@ document.addEventListener("DOMContentLoaded", function () {
         set_gui(result.options);
 
         document.addEventListener("change", (e) => {
-            if (e.target.name === "git") {
-                result.options.functions.git = (e.target.value === "on");
+            // Handle function toggles dynamically
+            if (FUNCTION_IDS.includes(e.target.name)) {
+                result.options.functions[e.target.name] = (e.target.value === "on");
                 chrome.storage.local.set(result);
                 chrome.runtime.sendMessage({
-                    type: e.target.name,
-                    value: result.options.functions.git
-                }, function (response) {
-                });
-            } else if (e.target.name === "svn") {
-                result.options.functions.svn = (e.target.value === "on");
-                chrome.storage.local.set(result);
-                chrome.runtime.sendMessage({
-                    type: e.target.name,
-                    value: result.options.functions.svn
-                }, function (response) {
-                });
-            } else if (e.target.name === "hg") {
-                result.options.functions.hg = (e.target.value === "on");
-                chrome.storage.local.set(result);
-                chrome.runtime.sendMessage({
-                    type: e.target.name,
-                    value: result.options.functions.hg
-                }, function (response) {
-                });
-            } else if (e.target.name === "env") {
-                result.options.functions.env = (e.target.value === "on");
-                chrome.storage.local.set(result);
-                chrome.runtime.sendMessage({
-                    type: e.target.name,
-                    value: result.options.functions.env
-                }, function (response) {
-                });
-            } else if (e.target.name === "ds_store") {
-                result.options.functions.ds_store = (e.target.value === "on");
-                chrome.storage.local.set(result);
-                chrome.runtime.sendMessage({
-                    type: e.target.name,
-                    value: result.options.functions.ds_store
+                    type: "function_toggle",
+                    id: e.target.name,
+                    value: result.options.functions[e.target.name]
                 }, function (response) {
                 });
             } else if (e.target.id === "color") {

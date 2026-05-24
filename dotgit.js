@@ -7,7 +7,91 @@ const DEFAULT_OPTIONS = {
         "svn": false,
         "hg": false,
         "env": false,
-        "ds_store": false
+        "ds_store": false,
+        "cvs": false,
+        "bzr": false,
+        "svn_entries": false,
+        "env_local": false,
+        "env_production": false,
+        "env_backup": false,
+        "env_dev": false,
+        "npmrc": false,
+        "dockerenv": false,
+        "docker_compose": false,
+        "dockerfile": false,
+        "wp_config": false,
+        "composer_auth": false,
+        "firebase": false,
+        "terraform_state": false,
+        "terraform_vars": false,
+        "rails_secrets": false,
+        "django_settings": false,
+        "laravel_log": false,
+        "ssh_keys": false,
+        "aws_credentials": false,
+        "kube_config": false,
+        "sql_dump": false,
+        "backup_archive": false,
+        "php_backup": false,
+        "htaccess_backup": false,
+        "web_config_backup": false,
+        "phpinfo": false,
+        "php_errors": false,
+        "adminer": false,
+        "phpmyadmin": false,
+        "spring_actuator": false,
+        "symfony_profiler": false,
+        "laravel_telescope": false,
+        "rails_info": false,
+        "django_debug": false,
+        "elmah": false,
+        "grafana": false,
+        "htaccess": false,
+        "htpasswd": false,
+        "nginx_conf": false,
+        "server_status": false,
+        "nginx_status": false,
+        "web_config": false,
+        "crossdomain": false,
+        "robots_txt": false,
+        "swagger": false,
+        "graphql": false,
+        "wsdl": false,
+        "wp_login": false,
+        "wp_xmlrpc": false,
+        "wp_user_enum": false,
+        "joomla": false,
+        "drupal": false,
+        "magento": false,
+        "jenkinsfile": false,
+        "gitlab_ci": false,
+        "travis_ci": false,
+        "github_actions": false,
+        "circleci": false,
+        "package_json": false,
+        "package_lock": false,
+        "composer_json": false,
+        "gemfile": false,
+        "requirements_txt": false,
+        "pom_xml": false,
+        "cargo_toml": false,
+        "go_sum": false,
+        "dir_listing": false,
+        "source_maps": false,
+        "sitemap": false,
+        "app_settings": false,
+        "config_json": false,
+        "config_php": false,
+        "pem_keys": false,
+        "google_cloud": false,
+        "gitignore": false,
+        "admin_panel": false,
+        "debug_dirs": false,
+        "log_files": false,
+        "api_config": false,
+        "client_access_policy": false,
+        "readme_docs": false,
+        "csv_export": false
     },
     "color": "grey",
     "max_sites": 100,
@@ -30,16 +114,111 @@ const DEFAULT_OPTIONS = {
     ]
 };
 
+// Maps finding type to the path used for display in findings list
+// This is used by FINDINGS_FOUND handler to build the foundAt URL
+const FINDING_PATH_MAP = {
+    "git": "/.git/",
+    "svn": "/.svn/",
+    "hg": "/.hg/",
+    "env": "/.env",
+    "ds_store": "/.DS_Store",
+    "cvs": "/CVS/",
+    "bzr": "/.bzr/",
+    "svn_entries": "/.svn/entries",
+    "env_local": "/.env.local",
+    "env_production": "/.env.production",
+    "env_backup": "/.env.backup",
+    "env_dev": "/.env.dev",
+    "npmrc": "/.npmrc",
+    "dockerenv": "/.dockerenv",
+    "docker_compose": "/docker-compose.yml",
+    "dockerfile": "/Dockerfile",
+    "wp_config": "/wp-config.php",
+    "composer_auth": "/auth.json",
+    "firebase": "/firebase.json",
+    "terraform_state": "/terraform.tfstate",
+    "terraform_vars": "/terraform.tfvars",
+    "rails_secrets": "/config/database.yml",
+    "django_settings": "/settings.py",
+    "laravel_log": "/storage/logs/laravel.log",
+    "ssh_keys": "/.ssh/",
+    "aws_credentials": "/.aws/credentials",
+    "kube_config": "/.kube/config",
+    "sql_dump": "/dump.sql",
+    "backup_archive": "/backup.zip",
+    "php_backup": "/config.php.bak",
+    "htaccess_backup": "/.htaccess.bak",
+    "web_config_backup": "/web.config.bak",
+    "phpinfo": "/phpinfo.php",
+    "php_errors": "/error_log",
+    "adminer": "/adminer.php",
+    "phpmyadmin": "/phpmyadmin/",
+    "spring_actuator": "/actuator",
+    "symfony_profiler": "/_profiler/",
+    "laravel_telescope": "/telescope",
+    "rails_info": "/rails/info/properties",
+    "django_debug": "/__debug__/",
+    "elmah": "/elmah.axd",
+    "grafana": "/metrics",
+    "htaccess": "/.htaccess",
+    "htpasswd": "/.htpasswd",
+    "nginx_conf": "/nginx.conf",
+    "server_status": "/server-status",
+    "nginx_status": "/nginx_status",
+    "web_config": "/web.config",
+    "crossdomain": "/crossdomain.xml",
+    "robots_txt": "/robots.txt",
+    "swagger": "/swagger.json",
+    "graphql": "/graphql",
+    "wsdl": "/service.wsdl",
+    "wp_login": "/wp-login.php",
+    "wp_xmlrpc": "/xmlrpc.php",
+    "wp_user_enum": "/wp-json/wp/v2/users",
+    "joomla": "/administrator/",
+    "drupal": "/CHANGELOG.txt",
+    "magento": "/app/etc/local.xml",
+    "jenkinsfile": "/Jenkinsfile",
+    "gitlab_ci": "/.gitlab-ci.yml",
+    "travis_ci": "/.travis.yml",
+    "github_actions": "/.github/workflows/",
+    "circleci": "/.circleci/config.yml",
+    "package_json": "/package.json",
+    "package_lock": "/package-lock.json",
+    "composer_json": "/composer.json",
+    "gemfile": "/Gemfile",
+    "requirements_txt": "/requirements.txt",
+    "pom_xml": "/pom.xml",
+    "cargo_toml": "/Cargo.toml",
+    "go_sum": "/go.sum",
+    "dir_listing": "/",
+    "source_maps": "/main.js.map",
+    "sitemap": "/sitemap.xml",
+    "app_settings": "/application.properties",
+    "config_json": "/config.json",
+    "config_php": "/config.php",
+    "pem_keys": "/keys.pem",
+    "google_cloud": "/google-cloud.json",
+    "gitignore": "/.gitignore",
+    "admin_panel": "/admin/",
+    "debug_dirs": "/debug/",
+    "log_files": "/access.log",
+    "api_config": "/api/config",
+    "client_access_policy": "/clientaccesspolicy.xml",
+    "readme_docs": "/README.md",
+    "csv_export": "/export.csv"
+};
+
+// Returns the finding path for a given type, with fallback
+function getFindingPath(type) {
+    return FINDING_PATH_MAP[type] || ("/" + type);
+}
+
 const EXTENSION_ICON = {
     "48": "icons/dotgit-48.png",
     "96": "icons/dotgit-96.png"
 };
 
 const GIT_PATH = "/.git/";
-const SVN_PATH = "/.svn/";
-const HG_PATH = "/.hg/";
-const ENV_PATH = "/.env";
-const DS_STORE = "/.DS_Store";
 
 const GIT_TREE_HEADER = "tree ";
 const GIT_OBJECTS_PATH = "objects/";
@@ -81,11 +260,7 @@ let notification_new_git;
 let notification_download;
 let check_opensource;
 let check_securitytxt;
-let check_git;
-let check_svn;
-let check_hg;
-let check_env;
-let check_ds_store;
+let enabledFunctions = {}; // Dynamic map of function_id -> boolean
 let failed_in_a_row;
 let check_failed;
 let blacklist = [];
@@ -401,11 +576,8 @@ function set_options(options) {
     notification_download = options.notification.download;
     check_opensource = options.check_opensource;
     check_securitytxt = options.check_securitytxt;
-    check_git = options.functions.git;
-    check_svn = options.functions.svn;
-    check_hg = options.functions.hg;
-    check_env = options.functions.env;
-    check_ds_store = options.functions.ds_store;
+    // Dynamically load all function toggles
+    enabledFunctions = { ...options.functions };
     debug = options.debug;
     check_failed = options.check_failed;
     blacklist = options.blacklist;
@@ -437,13 +609,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
                 let newFindings = [];
 
                 for (const type of data.types) {
-                    const findingUrl = origin + (
-                        type === 'git' ? GIT_PATH :
-                        type === 'svn' ? SVN_PATH :
-                        type === 'hg' ? HG_PATH :
-                        type === 'env' ? ENV_PATH :
-                        DS_STORE
-                    );
+                    const findingUrl = origin + getFindingPath(type);
 
                     if (!withExposedGit.some(item =>
                         item.url === origin && item.type === type
@@ -451,6 +617,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
                         withExposedGit.push({
                             type: type,
                             url: origin,
+                            severity: data.severity || "info",
                             open: data.opensource || false,
                             securitytxt: data.securitytxt || false,
                             foundAt: findingUrl
@@ -532,13 +699,15 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         return true;
     }
 
+    // Handle function toggle updates (any check id from registry)
+    if (msg.type === "function_toggle") {
+        enabledFunctions[msg.id] = msg.value;
+        sendResponse({status: true});
+        return false;
+    }
+
     // Handle simple option updates
     const optionHandlers = {
-        'git': () => check_git = msg.value,
-        'svn': () => check_svn = msg.value,
-        'hg': () => check_hg = msg.value,
-        'env': () => check_env = msg.value,
-        'ds_store': () => check_ds_store = msg.value,
         'notification_new_git': () => notification_new_git = msg.value,
         'notification_download': () => notification_download = msg.value,
         'check_opensource': () => check_opensource = msg.value,
