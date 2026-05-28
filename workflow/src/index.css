@@ -1,0 +1,7 @@
+.wf-app { display: flex; flex-direction: column; height: 100vh; background: #0f172a; color: #e2e8f0; }
+.wf-toolbar { display: flex; gap: 8px; padding: 8px 12px; background: #1e293b; border-bottom: 1px solid #334155; align-items: center; }
+.wf-toolbar input { background: #0f172a; border: 1px solid #334155; color: #e2e8f0; padding: 4px 8px; border-radius: 4px; font-size: 13px; }
+.wf-toolbar button { background: #334155; border: none; color: #e2e8f0; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+.wf-toolbar button:disabled { opacity: 0.4; cursor: not-allowed; }
+.wf-main { display: flex; flex: 1; overflow: hidden; }
+.wf-canvas { flex: 1; }

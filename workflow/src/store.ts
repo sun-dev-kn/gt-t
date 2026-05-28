@@ -24,6 +24,9 @@ interface WorkflowStore {
   workflowName: string;
   workflowDomain: string;
   setWorkflowMeta: (name: string, domain: string) => void;
+  setWorkflowName: (name: string) => void;
+  setWorkflowDomain: (domain: string) => void;
+  saveCurrentWorkflow: () => void;
 
   // History
   past: HistoryEntry[];
@@ -40,6 +43,7 @@ interface WorkflowStore {
   // Selection
   selectedNodeId: string | null;
   selectNode: (id: string | null) => void;
+  setSelectedNodeId: (id: string | null) => void;
 
   // Load / reset
   loadWorkflow: (nodes: WorkflowNode[], edges: Edge[], name: string, domain: string) => void;
@@ -57,6 +61,25 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
 
   setWorkflowMeta(name, domain) {
     set({ workflowName: name, workflowDomain: domain });
+  },
+
+  setWorkflowName(name) {
+    set({ workflowName: name });
+  },
+
+  setWorkflowDomain(domain) {
+    set({ workflowDomain: domain });
+  },
+
+  saveCurrentWorkflow() {
+    // Serialise to JSON and write to browser.storage.local under the workflow name
+    const { nodes, edges, workflowName, workflowDomain } = get();
+    const payload = JSON.stringify({ name: workflowName, domain: workflowDomain, nodes, edges });
+    try {
+      (globalThis as Record<string, unknown> & { browser?: { storage?: { local?: { set?: (items: Record<string, unknown>) => void } } } }).browser?.storage?.local?.set?.({ [workflowName]: payload });
+    } catch {
+      // storage unavailable in test/dev environments — silently skip
+    }
   },
 
   snapshot() {
@@ -147,6 +170,10 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
   },
 
   selectNode(id) {
+    set({ selectedNodeId: id });
+  },
+
+  setSelectedNodeId(id) {
     set({ selectedNodeId: id });
   },
 

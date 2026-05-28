@@ -1,10 +1,141 @@
+import { useCallback, useEffect, useRef } from 'react';
+import {
+  ReactFlow,
+  Background,
+  Controls,
+  type OnConnect,
+  type OnDragOver,
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+import { useWorkflowStore } from './store';
+import { nodeTypes } from './nodes';
+import { edgeTypes } from './edges';
+import { NodeLibrary } from './components/NodeLibrary';
+import { Inspector } from './components/Inspector';
+import { Toolbar } from './components/Toolbar';
+import type { NodeData } from './types';
+
+function getDefaultData(nodeType: string): NodeData | null {
+  switch (nodeType) {
+    case 'trigger': return { subtype: 'manual' };
+    case 'schedule': return { subtype: 'schedule', intervalHours: 24 };
+    case 'manual': return { subtype: 'manual' };
+    case 'navigate': return { subtype: 'navigate', url: '' };
+    case 'click': return { subtype: 'click', selector: '' };
+    case 'fill': return { subtype: 'fill', selector: '', value: '' };
+    case 'scroll': return { subtype: 'scroll', selector: '', direction: 'down', amount: 300 };
+    case 'hover': return { subtype: 'hover', selector: '' };
+    case 'waitForSelector': return { subtype: 'waitForSelector', selector: '', timeoutMs: 5000 };
+    case 'delay': return { subtype: 'delay', ms: 1000 };
+    case 'networkIdle': return { subtype: 'networkIdle' };
+    case 'extract': return { subtype: 'extract', fields: [], varName: '' };
+    case 'extractTable': return { subtype: 'extractTable', selector: '', varName: '' };
+    case 'condition': return { subtype: 'condition', variable: '', operator: '==', value: '' };
+    case 'loop': return { subtype: 'loop', maxIterations: 10, continueVariable: '' };
+    case 'merge': return { subtype: 'merge' };
+    case 'injectCredentials': return { subtype: 'injectCredentials' };
+    case 'switchAccount': return { subtype: 'switchAccount' };
+    case 'sendToBackend': return { subtype: 'sendToBackend' };
+    case 'saveLocally': return { subtype: 'saveLocally' };
+    default: return null;
+  }
+}
+
 export default function App() {
+  const {
+    nodes,
+    edges,
+    onNodesChange,
+    onEdgesChange,
+    onConnect: storeOnConnect,
+    addNode,
+    setSelectedNodeId,
+    undo,
+    redo,
+  } = useWorkflowStore();
+
+  const reactFlowWrapper = useRef<HTMLDivElement>(null);
+
+  const onConnect: OnConnect = useCallback(
+    (connection) => {
+      storeOnConnect(connection);
+    },
+    [storeOnConnect],
+  );
+
+  const onDragOver: OnDragOver = useCallback((e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const onDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      const nodeType = e.dataTransfer.getData('application/reactflow-nodetype');
+      if (!nodeType || !reactFlowWrapper.current) return;
+
+      const bounds = reactFlowWrapper.current.getBoundingClientRect();
+      const position = {
+        x: e.clientX - bounds.left - 75,
+        y: e.clientY - bounds.top - 20,
+      };
+
+      const defaultData = getDefaultData(nodeType);
+      if (!defaultData) return;
+
+      addNode({
+        id: crypto.randomUUID(),
+        position,
+        data: defaultData,
+        type: nodeType,
+      });
+    },
+    [addNode],
+  );
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.ctrlKey && e.key === 'z') {
+        e.preventDefault();
+        undo();
+      }
+      if (e.ctrlKey && e.key === 'y') {
+        e.preventDefault();
+        redo();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [undo, redo]);
+
   return (
-    <div className="wf-layout" data-testid="wf-app">
-      <div className="wf-toolbar">Toolbar</div>
-      <div className="wf-sidebar">Sidebar</div>
-      <div className="wf-canvas">Canvas</div>
-      <div className="wf-inspector">Inspector</div>
+    <div className="wf-app">
+      <Toolbar />
+      <div className="wf-main">
+        <NodeLibrary />
+        <div className="wf-canvas" ref={reactFlowWrapper}>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+            onNodeClick={(_, node) => setSelectedNodeId(node.id)}
+            onPaneClick={() => setSelectedNodeId(null)}
+            defaultEdgeOptions={{ type: 'typed' }}
+            fitView
+          >
+            <Background />
+            <Controls />
+          </ReactFlow>
+        </div>
+        <Inspector />
+      </div>
     </div>
   );
 }
