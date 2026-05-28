@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="icon.css">
     <link rel="stylesheet" href="popup.css"/>
     <base target="_blank">
-    <script src="popup.js"></script>
+    <script src="popup.js" type="module"></script>
 </head>
 <body class="darken-3 custom-color">
 <div id="permissions-banner" style="display: none; padding: 10px; text-align: center; background-color: #ffeb3b; color: black;">
@@ -21,6 +21,7 @@
         <ul class="right">
             <li><a><i class="material-icons" title="About" id="about">info</i></a></li>
             <li><a><i class="material-icons" title="Settings" id="options">settings</i></a></li>
+            <li><a><i class="material-icons" title="Launches" id="launches-tab-btn">launch</i></a></li>
             <li><a><i class="material-icons" title="Delete all" id="reset">delete_forever</i></a></li>
         </ul>
     </div>
@@ -28,5 +29,15 @@
 <ul class="collection" id="hostsFound">
     <li class="collection-item center" id="hostsFoundTitle">Total found: 0 Max shown: 100</li>
 </ul>
+<div id="panel-launches" style="display:none; padding:8px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+    <span id="last-scrape-text" style="font-size:0.85em;">Last scrape: —</span>
+    <button id="run-scrape-now" class="waves-effect waves-light btn btn-small">Run now</button>
+  </div>
+  <ul class="collection" id="launches-list" style="max-height:280px; overflow-y:auto;"></ul>
+  <div style="text-align:center; margin-top:4px;">
+    <a id="view-all-launches" href="#" class="waves-effect waves-light btn btn-small btn-flat">View all →</a>
+  </div>
+</div>
 </body>
 </html>
