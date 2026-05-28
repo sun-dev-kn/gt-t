@@ -85,14 +85,14 @@ export async function runScrapeCycle() {
     if (result.cached > 0) {
       browser.notifications.create({
         type: "basic",
-        iconUrl: "/icons/dotgit-48.png",
+        iconUrl: browser.runtime.getURL("/icons/dotgit-48.png"),
         title: "DotGit Scraper",
         message: "Backend unreachable — results cached locally.",
       });
     } else {
       browser.notifications.create({
         type: "basic",
-        iconUrl: "/icons/dotgit-48.png",
+        iconUrl: browser.runtime.getURL("/icons/dotgit-48.png"),
         title: "DotGit Scraper",
         message: `Scraped ${result.inserted} new launches.`,
       });
@@ -100,13 +100,13 @@ export async function runScrapeCycle() {
   } catch (e) {
     const msg = e?.message ?? String(e);
 
-    if (msg.toLowerCase().includes("rate") || msg.toLowerCase().includes("limit")) {
+    if (/rate.?limit|429|too many requests/i.test(msg)) {
       await suspendAccount(account.id, 48);
     } else if (msg.toLowerCase().includes("login") || msg.toLowerCase().includes("auth")) {
       await markAccountError(account.id);
       browser.notifications.create({
         type: "basic",
-        iconUrl: "/icons/dotgit-48.png",
+        iconUrl: browser.runtime.getURL("/icons/dotgit-48.png"),
         title: "DotGit Scraper — Login Failed",
         message: `${account.email} needs attention.`,
       });

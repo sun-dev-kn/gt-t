@@ -298,8 +298,6 @@ const keepAlive = setInterval(() => {
 chrome.runtime.onStartup.addListener(() => {
     debugLog('Extension started');
     isWorkerActive = true;
-    browser.alarms.create(ALARM_NAME, { periodInMinutes: 720 });
-    ensureAllContainers();
 });
 
 chrome.runtime.onInstalled.addListener((details) => {
@@ -606,7 +604,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     debugLog('Received message:', msg.type);
 
     if (msg.type === "SCRAPER_RUN_NOW") {
-        runScrapeCycle(); // fire and forget
+        runScrapeCycle().catch(() => {}); // fire and forget
         return Promise.resolve({ ok: true });
     }
 
@@ -969,7 +967,7 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 
 browser.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === ALARM_NAME) {
-        runScrapeCycle();
+        runScrapeCycle().catch(() => {});
     }
 });
 
