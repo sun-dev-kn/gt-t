@@ -236,6 +236,8 @@ async function initScraperSection() {
   const statusEl = document.getElementById("master-password-status");
 
   if (backendUrlEl) backendUrlEl.value = settings.backendUrl;
+  const apiKeyEl = document.getElementById("api-key");
+  if (apiKeyEl) apiKeyEl.value = settings.apiKey ?? "";
   if (workflowIdEl) workflowIdEl.value = settings.workflowId;
   if (enabledEl) enabledEl.checked = settings.enabled;
 
@@ -255,6 +257,7 @@ async function initScraperSection() {
   document.getElementById("save-scraper-settings")?.addEventListener("click", async () => {
     await saveScraperSettings({
       backendUrl: document.getElementById("backend-url")?.value ?? "",
+      apiKey: document.getElementById("api-key")?.value ?? "",
       workflowId: document.getElementById("workflow-id")?.value ?? "",
       enabled: document.getElementById("scraper-enabled")?.checked ?? false,
     });

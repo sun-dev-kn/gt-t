@@ -1,9 +1,25 @@
 // scraper/crypto.js
+// AES-GCM credential encryption. Key derived from master password via PBKDF2.
+// Salt is random per-install, persisted to storage. _derivedKey held in memory only.
+
 let _derivedKey = null;
 
-const SALT = new TextEncoder().encode("dotgit-scraper-v1");
+const SALT_KEY = "scraper_crypto_salt";
+
+async function getOrCreateSalt() {
+  const result = await browser.storage.local.get(SALT_KEY);
+  if (result[SALT_KEY]) {
+    return Uint8Array.from(atob(result[SALT_KEY]), (c) => c.charCodeAt(0));
+  }
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  await browser.storage.local.set({
+    [SALT_KEY]: btoa(String.fromCharCode(...salt)),
+  });
+  return salt;
+}
 
 export async function setMasterPassword(password) {
+  const salt = await getOrCreateSalt();
   const raw = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(password),
@@ -12,7 +28,7 @@ export async function setMasterPassword(password) {
     ["deriveKey"]
   );
   _derivedKey = await crypto.subtle.deriveKey(
-    { name: "PBKDF2", salt: SALT, iterations: 100000, hash: "SHA-256" },
+    { name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" },
     raw,
     { name: "AES-GCM", length: 256 },
     false,
@@ -37,7 +53,7 @@ export async function encrypt(plaintext) {
     new TextEncoder().encode(plaintext)
   );
   return {
-    iv: btoa(String.fromCharCode(...iv)),
+    iv: btoa(Array.from(iv, (b) => String.fromCharCode(b)).join("")),
     data: btoa(Array.from(new Uint8Array(ciphertext), (b) => String.fromCharCode(b)).join("")),
   };
 }

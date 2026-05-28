@@ -14,20 +14,30 @@ export async function runMacroInContainer(cookieStoreId, macroName = "dotgit-web
     await injectTrigger(tab.id, macroName);
     return await pollForResult(tab.id);
   } finally {
-    await browser.tabs.discard(tab.id).catch(() => {});
+    await browser.tabs.remove(tab.id).catch(() => {});
   }
 }
 
 async function waitForTabLoad(tabId) {
+  // Check if already complete before attaching listener (avoids race on fast loads)
+  const current = await browser.tabs.get(tabId);
+  if (current.status === "complete") return;
+
   return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => reject(new Error("Tab load timeout")), 30000);
-    browser.tabs.onUpdated.addListener(function listener(updatedTabId, info) {
+    const timeout = setTimeout(() => {
+      browser.tabs.onUpdated.removeListener(listener);
+      reject(new Error("Tab load timeout"));
+    }, 30000);
+
+    function listener(updatedTabId, info) {
       if (updatedTabId === tabId && info.status === "complete") {
         clearTimeout(timeout);
         browser.tabs.onUpdated.removeListener(listener);
         resolve();
       }
-    });
+    }
+
+    browser.tabs.onUpdated.addListener(listener);
   });
 }
 

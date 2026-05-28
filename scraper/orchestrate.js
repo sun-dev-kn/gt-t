@@ -1,6 +1,7 @@
 // scraper/orchestrate.js
 import { ensureContainer } from "./containers.js";
 import { getNextAccount, suspendAccount, markAccountError } from "./rotation.js";
+import { loadAccounts } from "./accounts.js";
 import { runMacroInContainer } from "./uivision.js";
 import { relay } from "./relay.js";
 import { appendLog } from "./log.js";
@@ -13,6 +14,7 @@ async function getSettings() {
     backendUrl: "http://localhost:3000",
     workflowId: "",
     enabled: false,
+    apiKey: "",
   };
 }
 
@@ -49,11 +51,19 @@ export async function runScrapeCycle() {
       cached: 0,
       error: "No active accounts available",
     });
+    browser.notifications.create({
+      type: "basic",
+      iconUrl: browser.runtime.getURL("/icons/dotgit-48.png"),
+      title: "DotGit Scraper — No Accounts Available",
+      message: "All accounts are suspended or in error state. Open Options to check the account pool.",
+    });
     return;
   }
 
   try {
-    const cookieStoreId = await ensureContainer(account, 0);
+    const allAccounts = await loadAccounts();
+    const accountIndex = allAccounts.findIndex((a) => a.id === account.id);
+    const cookieStoreId = await ensureContainer(account, accountIndex >= 0 ? accountIndex : 0);
     const items = await runMacroInContainer(cookieStoreId);
 
     if (!items || items.length === 0) {
@@ -71,7 +81,8 @@ export async function runScrapeCycle() {
       settings.backendUrl,
       settings.workflowId,
       account.email,
-      items
+      items,
+      settings.apiKey
     );
 
     await appendLog({
