@@ -1,3 +1,5 @@
+import type { Node, Edge } from '@xyflow/react';
+
 // ─── Port types ─────────────────────────────────────────────────────────────
 export type PortType = 'flow' | 'data' | 'error';
 
@@ -45,8 +47,6 @@ export type NodeData =
   | OutputData;
 
 // ─── Workflow persistence ─────────────────────────────────────────────────────
-import type { Node, Edge } from '@xyflow/react';
-
 export type WorkflowNode = Node<NodeData>;
 export type WorkflowEdge = Edge;
 
