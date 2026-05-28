@@ -1,5 +1,9 @@
 import "/lib/jszip.min.js";
 import "/lib/pako_inflate.min.js";
+import { runScrapeCycle } from "/scraper/orchestrate.js";
+import { ensureAllContainers } from "/scraper/containers.js";
+
+const ALARM_NAME = "dotgit-scraper-12h";
 
 const DEFAULT_OPTIONS = {
     "functions": {
@@ -294,6 +298,8 @@ const keepAlive = setInterval(() => {
 chrome.runtime.onStartup.addListener(() => {
     debugLog('Extension started');
     isWorkerActive = true;
+    browser.alarms.create(ALARM_NAME, { periodInMinutes: 720 });
+    ensureAllContainers();
 });
 
 chrome.runtime.onInstalled.addListener((details) => {
@@ -598,6 +604,11 @@ function checkOptions(default_options, storage_options) {
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     debugLog('Received message:', msg.type);
+
+    if (msg.type === "SCRAPER_RUN_NOW") {
+        runScrapeCycle(); // fire and forget
+        return Promise.resolve({ ok: true });
+    }
 
     if (msg.type === "FINDINGS_FOUND") {
         chrome.storage.local.get(["withExposedGit"], async (result) => {
@@ -943,6 +954,8 @@ chrome.runtime.onInstalled.addListener(async (details) => {
             notification("Welcome to DotGit!", "Click the extension icon to get started. You'll need to grant permissions to check for exposed Git repositories.");
         }
     }
+    browser.alarms.create(ALARM_NAME, { periodInMinutes: 720 });
+    ensureAllContainers();
 });
 
 // Modify storage change listener to be more concise
@@ -951,6 +964,12 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
         debugLog('Storage updated - new findings count:',
             changes.withExposedGit.newValue ? changes.withExposedGit.newValue.length : 0
         );
+    }
+});
+
+browser.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === ALARM_NAME) {
+        runScrapeCycle();
     }
 });
 
