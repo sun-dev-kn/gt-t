@@ -16,7 +16,10 @@
     "notifications",
     "downloads",
     "tabs",
-    "scripting"
+    "scripting",
+    "contextualIdentities",
+    "alarms",
+    "cookies"
   ],
   "host_permissions": [
     "http://*/*",
