@@ -117,7 +117,23 @@ test('unrecognized command is skipped', () => {
   expect(result.nodes[0].data).toMatchObject({ subtype: 'navigate' });
 });
 
-// ─── Test 9: roundtrip — toUiVision then fromUiVision restores structure ─────
+// ─── Test 9 (I2): malformed if_v2 with fewer than 3 parts is skipped ─────────
+
+test('if_v2 with fewer than 3 pipe-separated parts is skipped', () => {
+  const result = fromUiVision({
+    Name: 'test',
+    CreationDate: '',
+    Commands: [
+      { Command: 'if_v2', Target: 'score|>', Value: '', Description: 'bad-cond' }, // only 2 parts
+      { Command: 'open', Target: 'https://example.com', Value: '', Description: 'nav1' },
+    ],
+  });
+  // malformed if_v2 must be dropped; only the navigate node survives
+  expect(result.nodes).toHaveLength(1);
+  expect(result.nodes[0].data).toMatchObject({ subtype: 'navigate' });
+});
+
+// ─── Test 10: roundtrip — toUiVision then fromUiVision restores structure ────
 
 test('roundtrip: toUiVision → fromUiVision restores nodes and edges', () => {
   const originalNodes: WorkflowNode[] = [

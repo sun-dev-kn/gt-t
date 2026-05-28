@@ -47,7 +47,14 @@ function topoSort(nodes: WorkflowNode[], edges: WorkflowEdge[]): WorkflowNode[] 
   }
 
   // Post-order reversed gives topological order
-  return postOrder.reverse();
+  const result = postOrder.reverse();
+  // Append any nodes not reached by root-driven DFS (cycles, disconnected subgraphs)
+  for (const node of nodes) {
+    if (!visited.has(node.id)) {
+      result.push(node);
+    }
+  }
+  return result;
 }
 
 // ─── Node → UiVisionCommand ───────────────────────────────────────────────────

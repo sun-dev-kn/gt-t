@@ -134,7 +134,33 @@ test('condition node produces if_v2 command', () => {
   expect(macro.Commands[0]).toMatchObject({ Command: 'if_v2', Target: 'score|>|100' });
 });
 
-// ─── Test 8: Description field is node.id ───────────────────────────────────
+// ─── Test 8 (I3): disconnected node is included in output ───────────────────
+
+test('disconnected node not reachable from any root is still included in export', () => {
+  const nodes: WorkflowNode[] = [
+    {
+      id: 'n1',
+      type: 'navigate',
+      position: { x: 0, y: 0 },
+      data: { subtype: 'navigate', url: 'https://example.com' },
+    },
+    {
+      id: 'isolated',
+      type: 'click',
+      position: { x: 300, y: 0 },
+      data: { subtype: 'click', selector: '.btn' },
+    },
+  ];
+  // No edges — n1 and isolated are both roots but not connected to each other
+  // isolated has no edges linking it to n1; both should appear in output
+  const macro = toUiVision('w', nodes, []);
+  expect(macro.Commands).toHaveLength(2);
+  const ids = macro.Commands.map((c) => c.Description);
+  expect(ids).toContain('n1');
+  expect(ids).toContain('isolated');
+});
+
+// ─── Test 9: Description field is node.id ────────────────────────────────────
 
 test('every command has Description set to node.id', () => {
   const nodes: WorkflowNode[] = [

@@ -9,6 +9,7 @@ import {
   type Edge,
 } from '@xyflow/react';
 import type { WorkflowNode, NodeData } from './types';
+import { saveWorkflow } from './storage/workflows';
 
 type HistoryEntry = { nodes: WorkflowNode[]; edges: Edge[] };
 
@@ -26,7 +27,7 @@ interface WorkflowStore {
   setWorkflowMeta: (name: string, domain: string) => void;
   setWorkflowName: (name: string) => void;
   setWorkflowDomain: (domain: string) => void;
-  saveCurrentWorkflow: () => void;
+  saveCurrentWorkflow: () => Promise<void>;
 
   // History
   past: HistoryEntry[];
@@ -71,15 +72,9 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
     set({ workflowDomain: domain });
   },
 
-  saveCurrentWorkflow() {
-    // Serialise to JSON and write to browser.storage.local under the workflow name
-    const { nodes, edges, workflowName, workflowDomain } = get();
-    const payload = JSON.stringify({ name: workflowName, domain: workflowDomain, nodes, edges });
-    try {
-      (globalThis as Record<string, unknown> & { browser?: { storage?: { local?: { set?: (items: Record<string, unknown>) => void } } } }).browser?.storage?.local?.set?.({ [workflowName]: payload });
-    } catch {
-      // storage unavailable in test/dev environments — silently skip
-    }
+  async saveCurrentWorkflow() {
+    const { workflowName, workflowDomain, nodes, edges } = get();
+    await saveWorkflow({ name: workflowName, domain: workflowDomain, nodes, edges });
   },
 
   snapshot() {

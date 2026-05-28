@@ -66,16 +66,13 @@ function commandToNodeData(cmd: UiVisionCommand): NodeData | null {
       };
 
     case 'if_v2': {
-      const parts = Target.split('|');
-      const variable = parts[0] ?? '';
-      const op = parts[1] ?? '==';
-      const value = parts[2] ?? '';
-      return {
-        subtype: 'condition',
-        variable,
-        operator: op as '==' | '!=' | '>' | '<' | 'contains',
-        value,
-      };
+      const parts = cmd.Target.split('|');
+      if (parts.length < 3) return null; // skip malformed
+      const [variable, opRaw, value] = parts;
+      const VALID_OPS = ['==', '!=', '>', '<', 'contains'] as const;
+      type CondOp = typeof VALID_OPS[number];
+      const operator: CondOp = (VALID_OPS as readonly string[]).includes(opRaw) ? opRaw as CondOp : '==';
+      return { subtype: 'condition', variable: variable ?? '', operator, value: value ?? '' };
     }
 
     case 'times':
