@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef } from 'react';
+import type React from 'react';
 import {
   ReactFlow,
   Background,
   Controls,
   type OnConnect,
-  type OnDragOver,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useWorkflowStore } from './store';
@@ -63,7 +63,7 @@ export default function App() {
     [storeOnConnect],
   );
 
-  const onDragOver: OnDragOver = useCallback((e) => {
+  const onDragOver: React.DragEventHandler<HTMLDivElement> = useCallback((e) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
   }, []);

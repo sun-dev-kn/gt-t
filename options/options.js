@@ -309,3 +309,8 @@ initScraperSection().catch((err) => {
   const statusEl = document.getElementById("master-password-status");
   if (statusEl) statusEl.textContent = "❌ Failed to load scraper settings";
 });
+
+// ---- WORKFLOW DESIGNER ----
+document.getElementById("open-workflow-designer")?.addEventListener("click", () => {
+  browser.tabs.create({ url: browser.runtime.getURL("workflow/dist/workflow.html") });
+});
