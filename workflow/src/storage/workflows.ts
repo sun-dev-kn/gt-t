@@ -14,17 +14,17 @@ async function setIndex(names: string[]): Promise<void> {
 
 export async function saveWorkflow(wf: WorkflowJSON): Promise<void> {
   const key = PREFIX + wf.name;
-  await browser.storage.local.set({ [key]: wf });
   const index = await getIndex();
-  if (!index.includes(wf.name)) {
-    await setIndex([...index, wf.name]);
-  }
+  const updatedIndex = index.includes(wf.name) ? index : [...index, wf.name];
+  await browser.storage.local.set({ [key]: wf, [INDEX_KEY]: updatedIndex });
 }
 
 export async function loadWorkflow(name: string): Promise<WorkflowJSON | null> {
   const key = PREFIX + name;
   const result = await browser.storage.local.get(key);
-  return (result[key] as WorkflowJSON | undefined) ?? null;
+  const raw = result[key];
+  if (!raw || typeof raw !== 'object' || !('name' in (raw as object))) return null;
+  return raw as WorkflowJSON;
 }
 
 export async function listWorkflows(): Promise<string[]> {
