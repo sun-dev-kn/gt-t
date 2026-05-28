@@ -1,0 +1,57 @@
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  font-family: system-ui, sans-serif;
+  background: #1a1a2e;
+  color: #e2e8f0;
+}
+
+.wf-layout {
+  display: grid;
+  grid-template-rows: 48px 1fr;
+  grid-template-columns: 220px 1fr 280px;
+  grid-template-areas:
+    "toolbar toolbar toolbar"
+    "sidebar canvas inspector";
+  height: 100vh;
+}
+
+.wf-toolbar  { grid-area: toolbar;   background: #16213e; border-bottom: 1px solid #0f3460; display: flex; align-items: center; gap: 8px; padding: 0 12px; }
+.wf-sidebar  { grid-area: sidebar;   background: #16213e; border-right: 1px solid #0f3460; overflow-y: auto; }
+.wf-canvas   { grid-area: canvas;    position: relative; }
+.wf-inspector{ grid-area: inspector; background: #16213e; border-left: 1px solid #0f3460; overflow-y: auto; padding: 12px; }
+
+/* Node library */
+.nl-category { padding: 6px 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #94a3b8; cursor: pointer; user-select: none; }
+.nl-item { padding: 6px 16px 6px 24px; font-size: 13px; cursor: grab; color: #cbd5e1; border-left: 3px solid transparent; }
+.nl-item:hover { background: #0f3460; border-left-color: #e94560; }
+
+/* Toolbar */
+.wf-toolbar input[type=text] { background: #0f3460; border: 1px solid #1a4a7a; color: #e2e8f0; padding: 4px 8px; border-radius: 4px; font-size: 13px; width: 200px; }
+.wf-btn { background: #0f3460; border: 1px solid #1a4a7a; color: #e2e8f0; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+.wf-btn:hover { background: #e94560; border-color: #e94560; }
+.wf-btn-primary { background: #e94560; border-color: #e94560; }
+
+/* Inspector */
+.ins-empty { color: #64748b; font-size: 13px; text-align: center; margin-top: 40px; }
+.ins-field { margin-bottom: 12px; }
+.ins-label { display: block; font-size: 11px; font-weight: 600; color: #94a3b8; margin-bottom: 4px; text-transform: uppercase; }
+.ins-input { width: 100%; background: #0f3460; border: 1px solid #1a4a7a; color: #e2e8f0; padding: 5px 8px; border-radius: 4px; font-size: 13px; }
+.ins-input:focus { outline: none; border-color: #e94560; }
+
+/* Custom nodes */
+.wf-node { background: #16213e; border: 1px solid #0f3460; border-radius: 6px; padding: 10px 14px; min-width: 140px; font-size: 12px; }
+.wf-node-header { font-weight: 700; font-size: 11px; text-transform: uppercase; margin-bottom: 4px; }
+.wf-node-label  { color: #94a3b8; font-size: 12px; }
+.wf-node.selected { border-color: #e94560; }
+
+/* Loop container */
+.wf-loop-node { background: rgba(233,69,96,0.05); border: 2px dashed #e94560; border-radius: 8px; min-width: 240px; min-height: 160px; }
+
+/* Edge validation */
+.edge-invalid path { stroke: #e94560 !important; }
