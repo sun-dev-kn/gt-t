@@ -1,4 +1,5 @@
-import type { NodeTypes } from '@xyflow/react';
+import type { NodeTypes, NodeProps } from '@xyflow/react';
+import type { ComponentType } from 'react';
 import { TriggerNode } from './TriggerNode';
 import { BrowserNode } from './BrowserNode';
 import { WaitNode } from './WaitNode';
@@ -6,31 +7,32 @@ import { DataNode } from './DataNode';
 import { ControlNode } from './ControlNode';
 import { AccountNode } from './AccountNode';
 import { OutputNode } from './OutputNode';
+import type { TriggerData, BrowserData, WaitData, DataNodeData, ControlData, AccountData, OutputData } from '../types';
+
+// React Flow's nodeTypes requires ComponentType<NodeProps>. Our components accept
+// narrower data shapes matched by WorkflowNode's generic. The cast is safe because
+// React Flow narrows data at the call site via Node<TData>.
+function asNodeType<T>(c: ComponentType<NodeProps & { data: T }>): NodeTypes[string] {
+  return c as NodeTypes[string];
+}
 
 export const nodeTypes: NodeTypes = {
-  // Triggers
-  trigger: TriggerNode as NodeTypes[string],
-  // Browser
-  navigate: BrowserNode as NodeTypes[string],
-  click: BrowserNode as NodeTypes[string],
-  fill: BrowserNode as NodeTypes[string],
-  scroll: BrowserNode as NodeTypes[string],
-  hover: BrowserNode as NodeTypes[string],
-  // Wait
-  waitForSelector: WaitNode as NodeTypes[string],
-  delay: WaitNode as NodeTypes[string],
-  networkIdle: WaitNode as NodeTypes[string],
-  // Data
-  extract: DataNode as NodeTypes[string],
-  extractTable: DataNode as NodeTypes[string],
-  // Control
-  condition: ControlNode as NodeTypes[string],
-  loop: ControlNode as NodeTypes[string],
-  merge: ControlNode as NodeTypes[string],
-  // Account
-  injectCredentials: AccountNode as NodeTypes[string],
-  switchAccount: AccountNode as NodeTypes[string],
-  // Output
-  sendToBackend: OutputNode as NodeTypes[string],
-  saveLocally: OutputNode as NodeTypes[string],
+  trigger: asNodeType<TriggerData>(TriggerNode),
+  navigate: asNodeType<BrowserData>(BrowserNode),
+  click: asNodeType<BrowserData>(BrowserNode),
+  fill: asNodeType<BrowserData>(BrowserNode),
+  scroll: asNodeType<BrowserData>(BrowserNode),
+  hover: asNodeType<BrowserData>(BrowserNode),
+  waitForSelector: asNodeType<WaitData>(WaitNode),
+  delay: asNodeType<WaitData>(WaitNode),
+  networkIdle: asNodeType<WaitData>(WaitNode),
+  extract: asNodeType<DataNodeData>(DataNode),
+  extractTable: asNodeType<DataNodeData>(DataNode),
+  condition: asNodeType<ControlData>(ControlNode),
+  loop: asNodeType<ControlData>(ControlNode),
+  merge: asNodeType<ControlData>(ControlNode),
+  injectCredentials: asNodeType<AccountData>(AccountNode),
+  switchAccount: asNodeType<AccountData>(AccountNode),
+  sendToBackend: asNodeType<OutputData>(OutputNode),
+  saveLocally: asNodeType<OutputData>(OutputNode),
 };

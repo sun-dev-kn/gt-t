@@ -30,8 +30,9 @@ export function ControlNode({ data, selected }: NodeProps & { data: ControlData 
   // merge
   return (
     <div className={`wf-node${selected ? ' selected' : ''}`} style={{ borderTopColor: '#94a3b8' }}>
-      <Handle type="target" position={Position.Left} id="in-a" style={{ top: '35%' }} />
-      <Handle type="target" position={Position.Left} id="in-b" style={{ top: '65%' }} />
+      <Handle type="target" position={Position.Left} id="in-a" style={{ top: '30%' }} />
+      <Handle type="target" position={Position.Left} id="in-b" style={{ top: '55%' }} />
+      <Handle type="target" position={Position.Left} id="in-err" style={{ top: '80%', background: '#e94560' }} />
       <div className="wf-node-header" style={{ color: '#94a3b8' }}>Merge</div>
       <Handle type="source" position={Position.Right} id="out" />
     </div>

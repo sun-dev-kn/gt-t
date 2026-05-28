@@ -34,7 +34,7 @@ export type AccountData =
   | { subtype: 'switchAccount' };
 
 export type OutputData =
-  | { subtype: 'sendToBackend'; endpoint: string }
+  | { subtype: 'sendToBackend'; endpoint?: string }
   | { subtype: 'saveLocally' };
 
 export type NodeData =
