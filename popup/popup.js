@@ -486,6 +486,14 @@ document.addEventListener("DOMContentLoaded", async function () {
 // ---- LAUNCHES TAB ----
 import { getLastScrapeAt } from "/scraper/rotation.js";
 
+function escapeHtml(str) {
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 async function renderLaunchesTab() {
   const lastAt = await getLastScrapeAt();
   const lastScrapeEl = document.getElementById("last-scrape-text");
@@ -499,22 +507,30 @@ async function renderLaunchesTab() {
   const launches = result.scraper_recent_launches ?? [];
   const list = document.getElementById("launches-list");
   if (list) {
-    list.innerHTML = launches.slice(0, 20).map((l) => `
-      <li class="collection-item">
-        <a href="${l.url}" target="_blank" style="font-weight:bold;">${l.name || l.url}</a>
-        <span style="display:block; font-size:0.8em; color:#777;">
-          ${l.category ?? ""}${l.launchDate ? " · " + String(l.launchDate).slice(0, 10) : ""}
-        </span>
-      </li>
-    `).join("");
+    list.innerHTML = launches.slice(0, 20).map((l) => {
+      const safeUrl = /^https?:\/\//.test(l.url ?? "") ? l.url : "#";
+      return `
+        <li class="collection-item">
+          <a href="${escapeHtml(safeUrl)}" target="_blank" style="font-weight:bold;">${escapeHtml(l.name || l.url)}</a>
+          <span style="display:block; font-size:0.8em; color:#777;">
+            ${escapeHtml(l.category ?? "")}${l.launchDate ? " · " + escapeHtml(String(l.launchDate).slice(0, 10)) : ""}
+          </span>
+        </li>
+      `;
+    }).join("");
   }
 }
 
 document.getElementById("launches-tab-btn")?.addEventListener("click", async () => {
-  // Hide the main findings list and show launches panel
   const hostsFound = document.getElementById("hostsFound");
-  if (hostsFound) hostsFound.style.display = "none";
   const panel = document.getElementById("panel-launches");
+  const isOpen = panel?.style.display !== "none";
+  if (isOpen) {
+    if (panel) panel.style.display = "none";
+    if (hostsFound) hostsFound.style.display = "";
+    return;
+  }
+  if (hostsFound) hostsFound.style.display = "none";
   if (panel) panel.style.display = "block";
   await renderLaunchesTab();
 });
@@ -527,5 +543,14 @@ document.getElementById("run-scrape-now")?.addEventListener("click", () => {
 browser.storage.local.get("scraper_settings").then((result) => {
   const backendUrl = result.scraper_settings?.backendUrl ?? "http://localhost:3000";
   const viewAll = document.getElementById("view-all-launches");
-  if (viewAll) viewAll.href = `${backendUrl}/api/launches`;
+  if (viewAll) {
+    try {
+      const parsed = new URL(backendUrl);
+      if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+        viewAll.href = parsed.href.replace(/\/?$/, "/") + "api/launches";
+      }
+    } catch {
+      // invalid URL — leave href as "#"
+    }
+  }
 });

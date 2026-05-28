@@ -54,8 +54,9 @@ export async function relay(backendUrl, workflowId, scrapedBy, items) {
 
     // cache recent items for popup display
     const { scraper_recent_launches: existing = [] } = await browser.storage.local.get("scraper_recent_launches");
-    const merged = [...items, ...existing].slice(0, 50);
-    await browser.storage.local.set({ scraper_recent_launches: merged });
+    const seen = new Set(items.map((i) => i.url));
+    const deduped = [...items, ...existing.filter((e) => !seen.has(e.url))].slice(0, 50);
+    await browser.storage.local.set({ scraper_recent_launches: deduped });
 
     return { ...result, cached: 0 };
   } catch {

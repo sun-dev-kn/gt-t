@@ -183,16 +183,24 @@ import { setMasterPassword, hasMasterPassword } from "/scraper/crypto.js";
 import { saveScraperSettings, getScraperSettings } from "/scraper/orchestrate.js";
 import { getLog, clearLog } from "/scraper/log.js";
 
+function escapeHtml(str) {
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 async function renderAccountTable() {
   const accounts = await loadAccounts();
   const tbody = document.getElementById("account-tbody");
   if (!tbody) return;
   tbody.innerHTML = accounts.map((a) => `
     <tr>
-      <td>${a.email}</td>
-      <td>${a.status}${a.suspendedUntil ? " until " + new Date(a.suspendedUntil).toLocaleString() : ""}</td>
-      <td>${a.lastUsed ? new Date(a.lastUsed).toLocaleString() : "—"}</td>
-      <td><button data-delete="${a.id}">Delete</button></td>
+      <td>${escapeHtml(a.email)}</td>
+      <td>${escapeHtml(a.status)}${a.suspendedUntil ? " until " + escapeHtml(new Date(a.suspendedUntil).toLocaleString()) : ""}</td>
+      <td>${a.lastUsed ? escapeHtml(new Date(a.lastUsed).toLocaleString()) : "—"}</td>
+      <td><button data-delete="${escapeHtml(a.id)}">Delete</button></td>
     </tr>
   `).join("");
 
@@ -210,12 +218,12 @@ async function renderLog() {
   if (!tbody) return;
   tbody.innerHTML = log.map((e) => `
     <tr>
-      <td>${new Date(e.timestamp).toLocaleString()}</td>
-      <td>${e.accountEmail ?? "—"}</td>
-      <td>${e.itemsInserted ?? 0}</td>
-      <td>${e.itemsSkipped ?? 0}</td>
-      <td>${e.cached ?? 0}</td>
-      <td>${e.error ?? "—"}</td>
+      <td>${escapeHtml(new Date(e.timestamp).toLocaleString())}</td>
+      <td>${escapeHtml(e.accountEmail ?? "—")}</td>
+      <td>${escapeHtml(String(e.itemsInserted ?? 0))}</td>
+      <td>${escapeHtml(String(e.itemsSkipped ?? 0))}</td>
+      <td>${escapeHtml(String(e.cached ?? 0))}</td>
+      <td>${escapeHtml(e.error ?? "—")}</td>
     </tr>
   `).join("");
 }
@@ -266,10 +274,15 @@ async function initScraperSection() {
       if (importStatus) importStatus.textContent = "❌ Unlock master password first";
       return;
     }
-    const text = await file.text();
-    const records = file.name.endsWith(".json") ? parseJSON(text) : parseCSV(text);
-    const count = await importAccounts(records);
-    if (importStatus) importStatus.textContent = `✅ Imported ${count} accounts`;
+    try {
+      const text = await file.text();
+      const records = file.name.endsWith(".json") ? parseJSON(text) : parseCSV(text);
+      if (!Array.isArray(records)) throw new Error("JSON file must be an array of account objects");
+      const count = await importAccounts(records);
+      if (importStatus) importStatus.textContent = `✅ Imported ${count} accounts`;
+    } catch (err) {
+      if (importStatus) importStatus.textContent = `❌ Import failed: ${err.message}`;
+    }
     await renderAccountTable();
   });
 
@@ -288,4 +301,8 @@ async function initScraperSection() {
   await renderLog();
 }
 
-initScraperSection();
+initScraperSection().catch((err) => {
+  console.error("[DotGit] Scraper init failed:", err);
+  const statusEl = document.getElementById("master-password-status");
+  if (statusEl) statusEl.textContent = "❌ Failed to load scraper settings";
+});
