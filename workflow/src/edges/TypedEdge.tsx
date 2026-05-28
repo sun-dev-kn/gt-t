@@ -1,5 +1,5 @@
-import { getBezierPath, BaseEdge, useNodes, type EdgeProps } from '@xyflow/react';
-import { HANDLE_TYPES } from '../types';
+import { getBezierPath, BaseEdge, useInternalNode, type EdgeProps } from '@xyflow/react';
+import { portsCompatible } from '../types';
 
 export function TypedEdge({
   id,
@@ -10,13 +10,12 @@ export function TypedEdge({
 }: EdgeProps) {
   const [edgePath] = getBezierPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition });
 
-  const nodes = useNodes();
-  const sourceNode = nodes.find((n) => n.id === source);
-  const targetNode = nodes.find((n) => n.id === target);
+  const sourceNode = useInternalNode(source);
+  const targetNode = useInternalNode(target);
 
-  const srcType = sourceNode?.type && sourceHandleId ? HANDLE_TYPES[sourceNode.type]?.[sourceHandleId] : undefined;
-  const tgtType = targetNode?.type && targetHandleId ? HANDLE_TYPES[targetNode.type]?.[targetHandleId] : undefined;
-  const isInvalid = srcType !== undefined && tgtType !== undefined && srcType !== tgtType;
+  const isInvalid = sourceNode?.type != null && targetNode?.type != null
+    && sourceHandleId != null && targetHandleId != null
+    && !portsCompatible(sourceNode.type, sourceHandleId, targetNode.type, targetHandleId);
 
   return (
     <BaseEdge
