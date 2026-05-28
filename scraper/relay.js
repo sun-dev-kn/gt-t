@@ -43,8 +43,9 @@ export async function relay(backendUrl, workflowId, scrapedBy, items) {
       await postWithRetry(backendUrl, workflowId, scrapedBy, cached);
       await setCached([]);
     } catch {
+      // still offline — append new items to existing cache
       await setCached([...cached, ...items]);
-      return { inserted: 0, skipped: 0, cached: items.length };
+      return { inserted: 0, skipped: 0, cached: cached.length + items.length };
     }
   }
 
@@ -58,7 +59,8 @@ export async function relay(backendUrl, workflowId, scrapedBy, items) {
 
     return { ...result, cached: 0 };
   } catch {
-    await setCached([...(await getCached()), ...items]);
+    // send failed — add to the (now-empty) cache
+    await setCached([...items]);
     return { inserted: 0, skipped: 0, cached: items.length };
   }
 }

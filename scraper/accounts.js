@@ -60,6 +60,8 @@ export async function clearAllAccounts() {
   await browser.storage.local.remove(STORAGE_KEY);
 }
 
+// Simple CSV parser. Does not handle quoted fields containing commas.
+// Use a JSON import for credentials with complex labels.
 export function parseCSV(text) {
   const lines = text.trim().split(/\r?\n/);
   const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());

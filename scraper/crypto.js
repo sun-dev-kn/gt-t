@@ -38,7 +38,7 @@ export async function encrypt(plaintext) {
   );
   return {
     iv: btoa(String.fromCharCode(...iv)),
-    data: btoa(String.fromCharCode(...new Uint8Array(ciphertext))),
+    data: btoa(Array.from(new Uint8Array(ciphertext), (b) => String.fromCharCode(b)).join("")),
   };
 }
 

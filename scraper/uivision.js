@@ -51,9 +51,19 @@ async function pollForResult(tabId) {
   return new Promise((resolve, reject) => {
     const deadline = Date.now() + TIMEOUT_MS;
 
+    function onTabRemoved(removedTabId) {
+      if (removedTabId === tabId) {
+        clearInterval(interval);
+        browser.tabs.onRemoved.removeListener(onTabRemoved);
+        reject(new Error("Scraper tab was closed before macro completed"));
+      }
+    }
+    browser.tabs.onRemoved.addListener(onTabRemoved);
+
     const interval = setInterval(async () => {
       if (Date.now() > deadline) {
         clearInterval(interval);
+        browser.tabs.onRemoved.removeListener(onTabRemoved);
         reject(new Error("ui.vision macro timed out after 5 minutes"));
         return;
       }
@@ -71,6 +81,7 @@ async function pollForResult(tabId) {
         const result = frame?.result;
         if (result?.output) {
           clearInterval(interval);
+          browser.tabs.onRemoved.removeListener(onTabRemoved);
           try {
             const parsed = JSON.parse(result.output);
             if (parsed.status === "error") {
