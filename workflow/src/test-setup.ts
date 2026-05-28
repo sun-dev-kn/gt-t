@@ -17,6 +17,9 @@ const storage: Record<string, unknown> = {};
         const ks = typeof keys === 'string' ? [keys] : keys;
         ks.forEach((k) => delete storage[k]);
       },
+      clear: async () => {
+        Object.keys(storage).forEach((k) => delete storage[k]);
+      },
     },
   },
   runtime: {
