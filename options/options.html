@@ -4,7 +4,7 @@
     <title>DotGit Options</title>
     <meta charset="utf-8"/>
     <link rel="stylesheet" type="text/css" href="options.css">
-    <script src="options.js"></script>
+    <script src="options.js" type="module"></script>
 </head>
 <body>
 <section class="option">
@@ -826,6 +826,93 @@
     <div class="browser-style title-option">
         <button class="button default" id="reset_default">Reset to default settings</button>
     </div>
+</section>
+<!-- SCRAPER SETTINGS -->
+<section class="option" id="scraper-section">
+  <div class="browser-style title-option" style="font-weight:bold; font-size:1.1em;">
+    Scraper Settings
+  </div>
+
+  <div class="browser-style title-option">
+    Master Password
+    <input type="password" id="master-password" placeholder="Set once per browser session" style="width:200px;"/>
+    <button id="set-master-password">Unlock</button>
+    <span id="master-password-status"></span>
+  </div>
+
+  <div class="browser-style title-option">
+    Backend URL
+    <input type="text" id="backend-url" placeholder="http://localhost:3000" style="width:250px;"/>
+  </div>
+
+  <div class="browser-style title-option">
+    Workflow ID
+    <input type="text" id="workflow-id" placeholder="cuid..." style="width:250px;"/>
+  </div>
+
+  <div class="browser-style title-option">
+    <label>
+      <input type="checkbox" id="scraper-enabled"/>
+      Enable 12-hour scheduled scraping
+    </label>
+  </div>
+
+  <div class="browser-style title-option">
+    <button id="save-scraper-settings">Save Settings</button>
+    <span id="settings-save-status"></span>
+  </div>
+
+  <div class="browser-style title-option" style="font-weight:bold; margin-top:12px;">
+    Account Pool
+  </div>
+
+  <div class="browser-style title-option">
+    <input type="file" id="account-file" accept=".csv,.json"/>
+    <button id="import-accounts">Import</button>
+    <span id="import-status"></span>
+  </div>
+
+  <div class="browser-style title-option">
+    <table id="account-table" border="1" style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Status</th>
+          <th>Last Used</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="account-tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="browser-style title-option">
+    <button id="clear-accounts">Clear All Accounts</button>
+  </div>
+
+  <div class="browser-style title-option" style="font-weight:bold; margin-top:12px;">
+    Scrape Log
+  </div>
+
+  <div class="browser-style title-option">
+    <button id="clear-log">Clear Log</button>
+  </div>
+
+  <div class="browser-style title-option">
+    <table id="log-table" border="1" style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Account</th>
+          <th>Inserted</th>
+          <th>Skipped</th>
+          <th>Cached</th>
+          <th>Error</th>
+        </tr>
+      </thead>
+      <tbody id="log-tbody"></tbody>
+    </table>
+  </div>
 </section>
 </body>
 </html>

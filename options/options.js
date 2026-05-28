@@ -176,3 +176,116 @@ document.addEventListener("DOMContentLoaded", function () {
 
     });
 });
+
+// ---- SCRAPER OPTIONS ----
+import { importAccounts, loadAccounts, deleteAccount, clearAllAccounts, parseCSV, parseJSON } from "/scraper/accounts.js";
+import { setMasterPassword, hasMasterPassword } from "/scraper/crypto.js";
+import { saveScraperSettings, getScraperSettings } from "/scraper/orchestrate.js";
+import { getLog, clearLog } from "/scraper/log.js";
+
+async function renderAccountTable() {
+  const accounts = await loadAccounts();
+  const tbody = document.getElementById("account-tbody");
+  if (!tbody) return;
+  tbody.innerHTML = accounts.map((a) => `
+    <tr>
+      <td>${a.email}</td>
+      <td>${a.status}${a.suspendedUntil ? " until " + new Date(a.suspendedUntil).toLocaleString() : ""}</td>
+      <td>${a.lastUsed ? new Date(a.lastUsed).toLocaleString() : "—"}</td>
+      <td><button data-delete="${a.id}">Delete</button></td>
+    </tr>
+  `).join("");
+
+  tbody.querySelectorAll("[data-delete]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      await deleteAccount(btn.dataset.delete);
+      await renderAccountTable();
+    });
+  });
+}
+
+async function renderLog() {
+  const log = await getLog();
+  const tbody = document.getElementById("log-tbody");
+  if (!tbody) return;
+  tbody.innerHTML = log.map((e) => `
+    <tr>
+      <td>${new Date(e.timestamp).toLocaleString()}</td>
+      <td>${e.accountEmail ?? "—"}</td>
+      <td>${e.itemsInserted ?? 0}</td>
+      <td>${e.itemsSkipped ?? 0}</td>
+      <td>${e.cached ?? 0}</td>
+      <td>${e.error ?? "—"}</td>
+    </tr>
+  `).join("");
+}
+
+async function initScraperSection() {
+  const settings = await getScraperSettings();
+  const backendUrlEl = document.getElementById("backend-url");
+  const workflowIdEl = document.getElementById("workflow-id");
+  const enabledEl = document.getElementById("scraper-enabled");
+  const statusEl = document.getElementById("master-password-status");
+
+  if (backendUrlEl) backendUrlEl.value = settings.backendUrl;
+  if (workflowIdEl) workflowIdEl.value = settings.workflowId;
+  if (enabledEl) enabledEl.checked = settings.enabled;
+
+  if (hasMasterPassword() && statusEl) {
+    statusEl.textContent = "✅ Unlocked";
+  }
+
+  document.getElementById("set-master-password")?.addEventListener("click", async () => {
+    const pw = document.getElementById("master-password")?.value;
+    if (!pw) return;
+    await setMasterPassword(pw);
+    if (statusEl) statusEl.textContent = "✅ Unlocked";
+    const pwEl = document.getElementById("master-password");
+    if (pwEl) pwEl.value = "";
+  });
+
+  document.getElementById("save-scraper-settings")?.addEventListener("click", async () => {
+    await saveScraperSettings({
+      backendUrl: document.getElementById("backend-url")?.value ?? "",
+      workflowId: document.getElementById("workflow-id")?.value ?? "",
+      enabled: document.getElementById("scraper-enabled")?.checked ?? false,
+    });
+    const saveStatus = document.getElementById("settings-save-status");
+    if (saveStatus) {
+      saveStatus.textContent = "✅ Saved";
+      setTimeout(() => { saveStatus.textContent = ""; }, 2000);
+    }
+  });
+
+  document.getElementById("import-accounts")?.addEventListener("click", async () => {
+    const fileEl = document.getElementById("account-file");
+    const file = fileEl?.files?.[0];
+    if (!file) return;
+    const importStatus = document.getElementById("import-status");
+    if (!hasMasterPassword()) {
+      if (importStatus) importStatus.textContent = "❌ Unlock master password first";
+      return;
+    }
+    const text = await file.text();
+    const records = file.name.endsWith(".json") ? parseJSON(text) : parseCSV(text);
+    const count = await importAccounts(records);
+    if (importStatus) importStatus.textContent = `✅ Imported ${count} accounts`;
+    await renderAccountTable();
+  });
+
+  document.getElementById("clear-accounts")?.addEventListener("click", async () => {
+    if (!confirm("Delete all accounts? This cannot be undone.")) return;
+    await clearAllAccounts();
+    await renderAccountTable();
+  });
+
+  document.getElementById("clear-log")?.addEventListener("click", async () => {
+    await clearLog();
+    await renderLog();
+  });
+
+  await renderAccountTable();
+  await renderLog();
+}
+
+initScraperSection();
