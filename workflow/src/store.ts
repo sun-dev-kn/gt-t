@@ -35,7 +35,7 @@ interface WorkflowStore {
   // Node operations
   addNode: (node: WorkflowNode) => void;
   deleteNode: (id: string) => void;
-  updateNodeData: (id: string, data: Partial<NodeData>) => void;
+  updateNodeData: (id: string, data: NodeData) => void;
 
   // Selection
   selectedNodeId: string | null;
@@ -91,36 +91,57 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
     });
   },
 
-  onNodesChange(changes) {
-    set({ nodes: applyNodeChanges(changes, get().nodes) as WorkflowNode[] });
+  onNodesChange(changes: NodeChange[]) {
+    const hasDragEnd = changes.some((c) => c.type === 'position' && !c.dragging);
+    const hasRemove  = changes.some((c) => c.type === 'remove');
+    if (hasDragEnd || hasRemove) {
+      const { nodes, edges, past } = get();
+      set({
+        past: [...past, { nodes: structuredClone(nodes), edges: structuredClone(edges) }].slice(-50),
+        future: [],
+        nodes: applyNodeChanges(changes, nodes) as WorkflowNode[],
+      });
+    } else {
+      set({ nodes: applyNodeChanges(changes, get().nodes) as WorkflowNode[] });
+    }
   },
 
   onEdgesChange(changes) {
     set({ edges: applyEdgeChanges(changes, get().edges) });
   },
 
-  onConnect(connection) {
-    get().snapshot();
-    set({ edges: addEdge({ ...connection, type: 'typed' }, get().edges) });
-  },
-
-  addNode(node) {
-    get().snapshot();
-    set({ nodes: [...get().nodes, node] });
-  },
-
-  deleteNode(id) {
-    get().snapshot();
+  onConnect(connection: Connection) {
+    const { nodes, edges, past } = get();
     set({
-      nodes: get().nodes.filter((n) => n.id !== id),
-      edges: get().edges.filter((e) => e.source !== id && e.target !== id),
+      past: [...past, { nodes: structuredClone(nodes), edges: structuredClone(edges) }].slice(-50),
+      future: [],
+      edges: addEdge({ ...connection, type: 'typed' }, edges),
     });
   },
 
-  updateNodeData(id, data) {
+  addNode(node: WorkflowNode) {
+    const { nodes, edges, past } = get();
+    set({
+      past: [...past, { nodes: structuredClone(nodes), edges: structuredClone(edges) }].slice(-50),
+      future: [],
+      nodes: [...nodes, node],
+    });
+  },
+
+  deleteNode(id: string) {
+    const { nodes, edges, past } = get();
+    set({
+      past: [...past, { nodes: structuredClone(nodes), edges: structuredClone(edges) }].slice(-50),
+      future: [],
+      nodes: nodes.filter((n) => n.id !== id),
+      edges: edges.filter((e) => e.source !== id && e.target !== id),
+    });
+  },
+
+  updateNodeData(id: string, data: NodeData) {
     set({
       nodes: get().nodes.map((n) =>
-        n.id === id ? { ...n, data: { ...n.data, ...data } as NodeData } : n
+        n.id === id ? { ...n, data } : n
       ),
     });
   },
@@ -134,6 +155,14 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
   },
 
   resetWorkflow() {
-    set({ nodes: [], edges: [], past: [], future: [], selectedNodeId: null });
+    set({
+      nodes: [],
+      edges: [],
+      past: [],
+      future: [],
+      selectedNodeId: null,
+      workflowName: 'Untitled Workflow',
+      workflowDomain: '',
+    });
   },
 }));
