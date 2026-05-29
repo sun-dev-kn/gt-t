@@ -1,20 +1,26 @@
 import React from 'react';
 import { render } from '@testing-library/react';
-import { useInternalNode } from '@xyflow/react';
+import { useInternalNode, ReactFlowProvider } from '@xyflow/react';
 import { TypedEdge } from './TypedEdge';
 import { Position } from '@xyflow/react';
+import { useWorkflowStore } from '../store';
 
 vi.mock('@xyflow/react', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@xyflow/react')>();
   return {
     ...actual,
     useInternalNode: vi.fn(),
-    getBezierPath: vi.fn(() => ['M0 0']),
-    BaseEdge: ({ id, path, style, className }: { id: string; path: string; style?: React.CSSProperties; className?: string }) => (
-      <path id={id} d={path} style={style} className={className} />
+    getBezierPath: vi.fn(() => ['M0 0', 50, 50]),
+    BaseEdge: ({ id, path, style, className, onMouseEnter, onMouseLeave }: { id: string; path: string; style?: React.CSSProperties; className?: string; onMouseEnter?: () => void; onMouseLeave?: () => void }) => (
+      <path id={id} d={path} style={style} className={className} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} />
     ),
+    EdgeLabelRenderer: ({ children }: { children?: React.ReactNode }) => <div data-testid="edge-label-renderer">{children}</div>,
   };
 });
+
+vi.mock('../store', () => ({
+  useWorkflowStore: vi.fn(() => ({ onEdgesChange: vi.fn() })),
+}));
 
 const baseProps = {
   id: 'edge-1',
@@ -32,6 +38,8 @@ const baseProps = {
   deletable: true,
   data: {},
 };
+
+const defaultProps = baseProps;
 
 test('renders without invalid class for compatible ports', () => {
   // trigger 'out' (flow) → navigate 'in' (flow) — compatible
@@ -90,4 +98,18 @@ test('renders without invalid class when handles unknown', () => {
   expect(pathEl).toBeTruthy();
   const cls = pathEl?.getAttribute('class') ?? '';
   expect(cls).not.toContain('edge-invalid');
+});
+
+it('shows delete button when edge is selected', () => {
+  (useInternalNode as ReturnType<typeof vi.fn>).mockImplementation((id: string) => {
+    if (id === 'n1') return { type: 'trigger' };
+    if (id === 'n2') return { type: 'navigate' };
+    return undefined;
+  });
+  const { getByText } = render(
+    <ReactFlowProvider>
+      <TypedEdge {...defaultProps} selected={true} />
+    </ReactFlowProvider>
+  );
+  expect(getByText('×')).toBeDefined();
 });
