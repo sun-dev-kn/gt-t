@@ -22,7 +22,7 @@ const DETAIL = (d: BrowserData): string => {
     case 'navigate':     return d.url || '(url)';
     case 'click':        return d.selector || '(selector)';
     case 'fill':         return `${d.selector || '(selector)'} → ${d.value || '…'}`;
-    case 'scroll':       return `${d.selector || '(selector)'} ${d.direction} ${d.amount}px`;
+    case 'scroll':       return `${d.selector || '(selector)'} ${d.direction || 'down'} ${d.amount ?? 0}px`;
     case 'hover':        return d.selector || '(selector)';
     case 'doubleClick':  return d.selector || '(selector)';
     case 'rightClick':   return d.selector || '(selector)';
@@ -38,13 +38,13 @@ const DETAIL = (d: BrowserData): string => {
 const NO_ERR = new Set<BrowserData['subtype']>(['pressKey', 'paste']);
 
 export function BrowserNode({ data, selected }: NodeProps & { data: BrowserData }) {
-  const hasError = !NO_ERR.has(data.subtype);
+  const hasErrorPath = !NO_ERR.has(data.subtype);
   return (
     <div className={`wf-node${selected ? ' selected' : ''}`} style={{ borderTopColor: '#3b82f6' }}>
       <Handle type="target" position={Position.Left} id="in" />
       <div className="wf-node-header" style={{ color: '#3b82f6' }}>{LABELS[data.subtype]}</div>
       <div className="wf-node-label">{DETAIL(data)}</div>
-      {hasError ? (
+      {hasErrorPath ? (
         <>
           <Handle type="source" position={Position.Right} id="out-success" style={{ top: '40%' }} />
           <Handle type="source" position={Position.Right} id="out-error" style={{ top: '70%', background: '#e94560' }} />

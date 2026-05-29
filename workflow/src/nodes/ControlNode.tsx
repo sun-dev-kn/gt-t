@@ -44,6 +44,7 @@ export function ControlNode({ data, selected }: NodeProps & { data: ControlData 
       <div className={`wf-node${selected ? ' selected' : ''}`} style={{ borderTopColor: '#f97316' }}>
         <Handle type="target" position={Position.Left} id="in" />
         <div className="wf-node-header" style={{ color: '#f97316' }}>Try / Catch</div>
+        <div className="wf-node-label">try → catch</div>
         <Handle type="source" position={Position.Right} id="out-try" style={{ top: '40%' }} />
         <Handle type="source" position={Position.Right} id="out-catch" style={{ top: '70%', background: '#e94560' }} />
       </div>

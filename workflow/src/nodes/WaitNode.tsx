@@ -13,11 +13,11 @@ const HEADER = (d: WaitData): string => {
 
 const LABEL = (d: WaitData): string => {
   switch (d.subtype) {
-    case 'waitForSelector': return `${d.selector} (${d.timeoutMs}ms)`;
+    case 'waitForSelector': return `${d.selector || '(selector)'} (${d.timeoutMs ?? 0}ms)`;
     case 'delay':           return `${d.ms}ms`;
-    case 'networkIdle':     return 'Network Idle';
-    case 'waitForUrl':      return `${d.pattern} (${d.timeoutMs}ms)`;
-    case 'waitForVisible':  return `${d.selector} ${d.visible ? 'visible' : 'hidden'}`;
+    case 'networkIdle':     return '';
+    case 'waitForUrl':      return `${d.pattern || '(pattern)'} (${d.timeoutMs ?? 0}ms)`;
+    case 'waitForVisible':  return `${d.selector || '(selector)'} ${d.visible ? 'visible' : 'hidden'}`;
   }
 };
 
