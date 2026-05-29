@@ -4,6 +4,7 @@ import {
   ReactFlow,
   Background,
   Controls,
+  MiniMap,
   type OnConnect,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -132,6 +133,11 @@ export default function App() {
           >
             <Background />
             <Controls />
+            <MiniMap
+              nodeColor="#334155"
+              maskColor="rgba(15, 23, 42, 0.6)"
+              style={{ background: '#1e293b', border: '1px solid #334155' }}
+            />
           </ReactFlow>
         </div>
         <Inspector />
