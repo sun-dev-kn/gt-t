@@ -207,8 +207,23 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
       _recordingPort = null;
     }
     const { workflowDomain } = get();
+    // Prefer browser (Firefox native) over chrome (Chrome / compatibility alias).
+    // chrome.runtime can be undefined in Firefox extension pages even when browser.runtime is available.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const runtime = (globalThis as any).browser?.runtime ?? (globalThis as any).chrome?.runtime;
+    if (!runtime) {
+      console.error('[DotGit] Extension runtime not available. Open the workflow designer from the extension.');
+      set({ recordingState: 'error' });
+      return;
+    }
     set({ recordingState: 'recording', capturedEvents: [] });
-    _recordingPort = chrome.runtime.connect({ name: 'designer-relay' });
+    try {
+      _recordingPort = runtime.connect({ name: 'designer-relay' });
+    } catch (err) {
+      console.error('[DotGit] Failed to connect to background script:', err);
+      set({ recordingState: 'error' });
+      return;
+    }
     _recordingPort.onMessage.addListener((msg: { type: string; event?: RecordedEvent; events?: RecordedEvent[]; reason?: string }) => {
       if (msg.type === 'LIVE_EVENT' && msg.event) {
         get().appendEvent(msg.event);
