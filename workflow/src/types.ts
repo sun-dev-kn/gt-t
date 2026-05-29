@@ -75,6 +75,8 @@ export interface UiVisionMacro {
 // nodeType → handleId → PortType
 export const HANDLE_TYPES: Record<string, Record<string, PortType>> = {
   trigger:    { 'out': 'flow' },
+  schedule:   { 'out': 'flow' },
+  manual:     { 'out': 'flow' },
   navigate:   { 'in': 'flow', 'out-success': 'flow', 'out-error': 'error' },
   click:      { 'in': 'flow', 'out-success': 'flow', 'out-error': 'error' },
   fill:       { 'in': 'flow', 'out-success': 'flow', 'out-error': 'error' },

@@ -27,9 +27,10 @@ test('unknown target handle defaults to compatible', () => {
   expect(portsCompatible('extract', 'out', 'unknown', 'anything')).toBe(true);
 });
 
-test('HANDLE_TYPES covers all 18 node subtypes', () => {
+test('HANDLE_TYPES covers all node types', () => {
   const expectedKeys = [
-    'trigger', 'navigate', 'click', 'fill', 'scroll', 'hover',
+    'trigger', 'schedule', 'manual',
+    'navigate', 'click', 'fill', 'scroll', 'hover',
     'waitForSelector', 'delay', 'networkIdle', 'extract', 'extractTable',
     'condition', 'loop', 'merge', 'injectCredentials', 'switchAccount',
     'sendToBackend', 'saveLocally',

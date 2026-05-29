@@ -18,6 +18,8 @@ function asNodeType<T>(c: ComponentType<NodeProps & { data: T }>): NodeTypes[str
 
 export const nodeTypes: NodeTypes = {
   trigger: asNodeType<TriggerData>(TriggerNode),
+  schedule: asNodeType<TriggerData>(TriggerNode),
+  manual: asNodeType<TriggerData>(TriggerNode),
   navigate: asNodeType<BrowserData>(BrowserNode),
   click: asNodeType<BrowserData>(BrowserNode),
   fill: asNodeType<BrowserData>(BrowserNode),

@@ -133,7 +133,7 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
     set({
       past: [...past, { nodes: structuredClone(nodes), edges: structuredClone(edges) }].slice(-50),
       future: [],
-      edges: addEdge({ ...connection, type: 'typed' }, edges),
+      edges: addEdge({ ...connection, id: crypto.randomUUID(), type: 'typed' }, edges),
     });
   },
 
