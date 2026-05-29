@@ -12,6 +12,10 @@ import type { WorkflowNode, NodeData, RecordedEvent } from './types';
 import { saveWorkflow } from './storage/workflows';
 import { eventsToNodes } from './recording/eventsToNodes';
 
+// Module-level port reference — survives Zustand state object replacement after set() calls.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _recordingPort: any = null;
+
 type HistoryEntry = { nodes: WorkflowNode[]; edges: Edge[] };
 
 interface WorkflowStore {
@@ -198,11 +202,15 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
   },
 
   startRecording() {
+    if (_recordingPort) {
+      try { _recordingPort.disconnect(); } catch { /* ignore */ }
+      _recordingPort = null;
+    }
     const { workflowDomain } = get();
     set({ recordingState: 'recording', capturedEvents: [] });
-    // @ts-expect-error chrome is a browser-only global provided by the extension runtime
-    const port = chrome.runtime.connect({ name: 'designer-relay' });
-    port.onMessage.addListener((msg: { type: string; event?: RecordedEvent; events?: RecordedEvent[]; reason?: string }) => {
+    // @ts-expect-error — chrome global available at extension runtime
+    _recordingPort = chrome.runtime.connect({ name: 'designer-relay' });
+    _recordingPort.onMessage.addListener((msg: { type: string; event?: RecordedEvent; events?: RecordedEvent[]; reason?: string }) => {
       if (msg.type === 'LIVE_EVENT' && msg.event) {
         get().appendEvent(msg.event);
       }
@@ -213,14 +221,18 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
         set({ recordingState: 'error' });
       }
     });
-    port.postMessage({ type: 'RECORDING_START', domain: workflowDomain || 'about:blank' });
-    // Store port reference for stopRecording
-    (get() as WorkflowStore & { _recordingPort?: typeof port })._recordingPort = port;
+    _recordingPort.onDisconnect.addListener(() => {
+      _recordingPort = null;
+      if (get().recordingState === 'recording') {
+        set({ recordingState: 'error' });
+      }
+    });
+    _recordingPort.postMessage({ type: 'RECORDING_START', domain: workflowDomain || 'about:blank' });
   },
 
   stopRecording() {
-    const store = get() as WorkflowStore & { _recordingPort?: { postMessage: (m: unknown) => void } };
-    store._recordingPort?.postMessage({ type: 'RECORDING_STOP' });
+    _recordingPort?.postMessage({ type: 'RECORDING_STOP' });
+    _recordingPort = null;
   },
 
   importRecording(selected: RecordedEvent[]) {
