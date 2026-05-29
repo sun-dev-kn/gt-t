@@ -107,8 +107,8 @@ export type RecordedEvent = {
   type: 'navigate' | 'click' | 'dblclick' | 'rightClick' | 'fill' | 'selectOption' |
         'check' | 'scroll' | 'hover' | 'pressKey' | 'dragDrop' | 'uploadFile' | 'paste' |
         'goBack' | 'goForward' | 'reload';
-  selector: string;
-  selectorStrategy: 'id' | 'aria' | 'name' | 'css' | 'xpath';
+  selector?: string;
+  selectorStrategy?: 'id' | 'aria' | 'name' | 'css' | 'xpath';
   value?: string;
   checked?: boolean;
   key?: string;
