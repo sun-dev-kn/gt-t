@@ -1,4 +1,5 @@
 import type { RecordedEvent, WorkflowNode, WorkflowEdge } from '../types';
+import { HANDLE_TYPES } from '../types';
 
 function eventToNode(event: RecordedEvent, x: number): WorkflowNode {
   const id = crypto.randomUUID();
@@ -37,12 +38,15 @@ function eventToNode(event: RecordedEvent, x: number): WorkflowNode {
       return { id, type: 'goForward', position, data: { subtype: 'goForward' } };
     case 'reload':
       return { id, type: 'reload', position, data: { subtype: 'reload' } };
+    default: {
+      const _exhaustive: never = event.type;
+      throw new Error(`Unhandled event type: ${_exhaustive}`);
+    }
   }
 }
 
 function sourceHandle(nodeType: string): string {
-  const withSuccess = new Set(['navigate', 'click', 'fill', 'scroll', 'hover', 'doubleClick', 'rightClick', 'selectOption', 'check', 'dragDrop', 'uploadFile']);
-  return withSuccess.has(nodeType) ? 'out-success' : 'out';
+  return HANDLE_TYPES[nodeType]?.['out-success'] ? 'out-success' : 'out';
 }
 
 export function eventsToNodes(events: RecordedEvent[]): { nodes: WorkflowNode[]; edges: WorkflowEdge[] } {
@@ -56,7 +60,7 @@ export function eventsToNodes(events: RecordedEvent[]): { nodes: WorkflowNode[];
       id: crypto.randomUUID(),
       source: nodes[i].id,
       target: nodes[i + 1].id,
-      sourceHandle: sourceHandle(nodes[i].type ?? ''),
+      sourceHandle: sourceHandle(nodes[i].type!),
       targetHandle: 'in',
       type: 'typed',
     });

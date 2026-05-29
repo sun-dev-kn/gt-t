@@ -45,6 +45,8 @@ describe('eventsToNodes event → node mapping', () => {
   it('scroll', () => {
     const { nodes } = eventsToNodes([ev({ type: 'scroll', selector: '#el' })]);
     expect(nodes[0].type).toBe('scroll');
+    expect((nodes[0].data as { direction: string; amount: number }).direction).toBe('down');
+    expect((nodes[0].data as { amount: number }).amount).toBe(300);
   });
   it('hover', () => {
     const { nodes } = eventsToNodes([ev({ type: 'hover', selector: '#el' })]);
@@ -58,6 +60,7 @@ describe('eventsToNodes event → node mapping', () => {
   it('dragDrop', () => {
     const { nodes } = eventsToNodes([ev({ type: 'dragDrop', selector: '#src', targetSelector: '#tgt' })]);
     expect(nodes[0].type).toBe('dragDrop');
+    expect((nodes[0].data as { targetSelector: string }).targetSelector).toBe('#tgt');
   });
   it('uploadFile', () => {
     const { nodes } = eventsToNodes([ev({ type: 'uploadFile', selector: '#inp', value: 'f.pdf' })]);
@@ -67,6 +70,7 @@ describe('eventsToNodes event → node mapping', () => {
   it('paste', () => {
     const { nodes } = eventsToNodes([ev({ type: 'paste', selector: '#el', value: 'txt' })]);
     expect(nodes[0].type).toBe('paste');
+    expect((nodes[0].data as { text: string }).text).toBe('txt');
   });
   it('goBack', () => {
     const { nodes } = eventsToNodes([ev({ type: 'goBack', selector: '' })]);
