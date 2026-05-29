@@ -8,8 +8,9 @@ import {
   type Connection,
   type Edge,
 } from '@xyflow/react';
-import type { WorkflowNode, NodeData } from './types';
+import type { WorkflowNode, NodeData, RecordedEvent } from './types';
 import { saveWorkflow } from './storage/workflows';
+import { eventsToNodes } from './recording/eventsToNodes';
 
 type HistoryEntry = { nodes: WorkflowNode[]; edges: Edge[] };
 
@@ -49,6 +50,16 @@ interface WorkflowStore {
   // Load / reset
   loadWorkflow: (nodes: WorkflowNode[], edges: Edge[], name: string, domain: string) => void;
   resetWorkflow: () => void;
+
+  // Recording
+  recordingState: 'idle' | 'recording' | 'reviewing' | 'error';
+  capturedEvents: RecordedEvent[];
+  startRecording(): void;
+  stopRecording(): void;
+  importRecording(selected: RecordedEvent[]): void;
+  discardRecording(): void;
+  appendEvent(event: RecordedEvent): void;
+  setRecordingState(state: 'idle' | 'recording' | 'reviewing' | 'error'): void;
 }
 
 export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
@@ -59,6 +70,8 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
   past: [],
   future: [],
   selectedNodeId: null,
+  recordingState: 'idle' as const,
+  capturedEvents: [],
 
   setWorkflowMeta(name, domain) {
     set({ workflowName: name, workflowDomain: domain });
@@ -174,6 +187,57 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
 
   loadWorkflow(nodes, edges, name, domain) {
     set({ nodes, edges, workflowName: name, workflowDomain: domain, past: [], future: [] });
+  },
+
+  setRecordingState(state) {
+    set({ recordingState: state });
+  },
+
+  appendEvent(event: RecordedEvent) {
+    set((s) => ({ capturedEvents: [...s.capturedEvents, event] }));
+  },
+
+  startRecording() {
+    const { workflowDomain } = get();
+    set({ recordingState: 'recording', capturedEvents: [] });
+    // @ts-expect-error chrome is a browser-only global provided by the extension runtime
+    const port = chrome.runtime.connect({ name: 'designer-relay' });
+    port.onMessage.addListener((msg: { type: string; event?: RecordedEvent; events?: RecordedEvent[]; reason?: string }) => {
+      if (msg.type === 'LIVE_EVENT' && msg.event) {
+        get().appendEvent(msg.event);
+      }
+      if (msg.type === 'RECORDING_COMPLETE' && msg.events) {
+        set({ capturedEvents: msg.events, recordingState: 'reviewing' });
+      }
+      if (msg.type === 'RECORDING_ERROR') {
+        set({ recordingState: 'error' });
+      }
+    });
+    port.postMessage({ type: 'RECORDING_START', domain: workflowDomain || 'about:blank' });
+    // Store port reference for stopRecording
+    (get() as WorkflowStore & { _recordingPort?: typeof port })._recordingPort = port;
+  },
+
+  stopRecording() {
+    const store = get() as WorkflowStore & { _recordingPort?: { postMessage: (m: unknown) => void } };
+    store._recordingPort?.postMessage({ type: 'RECORDING_STOP' });
+  },
+
+  importRecording(selected: RecordedEvent[]) {
+    const { nodes: existingNodes, edges: existingEdges, past } = get();
+    const { nodes: newNodes, edges: newEdges } = eventsToNodes(selected);
+    set({
+      past: [...past, { nodes: structuredClone(existingNodes), edges: structuredClone(existingEdges) }].slice(-50),
+      future: [],
+      nodes: [...existingNodes, ...newNodes],
+      edges: [...existingEdges, ...newEdges],
+      capturedEvents: [],
+      recordingState: 'idle',
+    });
+  },
+
+  discardRecording() {
+    set({ capturedEvents: [], recordingState: 'idle' });
   },
 
   resetWorkflow() {

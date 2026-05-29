@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 
 // Mock browser extension API
 const storage: Record<string, unknown> = {};
@@ -24,6 +25,21 @@ const storage: Record<string, unknown> = {};
   },
   runtime: {
     getURL: (path: string) => `moz-extension://test-id/${path}`,
+  },
+};
+
+const mockPort = {
+  postMessage: vi.fn(),
+  onMessage: { addListener: vi.fn() },
+  onDisconnect: { addListener: vi.fn() },
+  disconnect: vi.fn(),
+};
+
+(globalThis as Record<string, unknown>).chrome = {
+  runtime: {
+    connect: vi.fn(() => mockPort),
+    sendMessage: vi.fn(),
+    getURL: (path: string) => `chrome-extension://test-id/${path}`,
   },
 };
 
