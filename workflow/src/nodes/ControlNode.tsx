@@ -27,6 +27,29 @@ export function ControlNode({ data, selected }: NodeProps & { data: ControlData 
     );
   }
 
+  if (data.subtype === 'forEach') {
+    return (
+      <div className={`wf-node wf-loop-node${selected ? ' selected' : ''}`}>
+        <Handle type="target" position={Position.Left} id="in" />
+        <div className="wf-node-header" style={{ color: '#e94560' }}>For Each</div>
+        <div className="wf-node-label">{data.listVar} → {data.itemVar}</div>
+        <Handle type="source" position={Position.Right} id="out-loop" style={{ top: '40%' }} />
+        <Handle type="source" position={Position.Right} id="out-done" style={{ top: '70%', background: '#34d399' }} />
+      </div>
+    );
+  }
+
+  if (data.subtype === 'tryCatch') {
+    return (
+      <div className={`wf-node${selected ? ' selected' : ''}`} style={{ borderTopColor: '#f97316' }}>
+        <Handle type="target" position={Position.Left} id="in" />
+        <div className="wf-node-header" style={{ color: '#f97316' }}>Try / Catch</div>
+        <Handle type="source" position={Position.Right} id="out-try" style={{ top: '40%' }} />
+        <Handle type="source" position={Position.Right} id="out-catch" style={{ top: '70%', background: '#e94560' }} />
+      </div>
+    );
+  }
+
   // merge
   return (
     <div className={`wf-node${selected ? ' selected' : ''}`} style={{ borderTopColor: '#94a3b8' }}>

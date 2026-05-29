@@ -1,19 +1,23 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import type { WaitData } from '../types';
 
-const LABEL = (d: WaitData): string => {
-  switch (d.subtype) {
-    case 'waitForSelector': return `Wait: ${d.selector} (${d.timeoutMs}ms)`;
-    case 'delay':           return `Delay ${d.ms}ms`;
-    case 'networkIdle':     return 'Network Idle';
-  }
-};
-
 const HEADER = (d: WaitData): string => {
   switch (d.subtype) {
     case 'waitForSelector': return 'Wait Selector';
     case 'delay':           return 'Delay';
     case 'networkIdle':     return 'Network Idle';
+    case 'waitForUrl':      return 'Wait for URL';
+    case 'waitForVisible':  return 'Wait Visible';
+  }
+};
+
+const LABEL = (d: WaitData): string => {
+  switch (d.subtype) {
+    case 'waitForSelector': return `${d.selector} (${d.timeoutMs}ms)`;
+    case 'delay':           return `${d.ms}ms`;
+    case 'networkIdle':     return 'Network Idle';
+    case 'waitForUrl':      return `${d.pattern} (${d.timeoutMs}ms)`;
+    case 'waitForVisible':  return `${d.selector} ${d.visible ? 'visible' : 'hidden'}`;
   }
 };
 
