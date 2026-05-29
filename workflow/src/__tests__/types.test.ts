@@ -31,9 +31,15 @@ test('HANDLE_TYPES covers all node types', () => {
   const expectedKeys = [
     'trigger', 'schedule', 'manual',
     'navigate', 'click', 'fill', 'scroll', 'hover',
-    'waitForSelector', 'delay', 'networkIdle', 'extract', 'extractTable',
-    'condition', 'loop', 'merge', 'injectCredentials', 'switchAccount',
+    'doubleClick', 'rightClick', 'selectOption', 'check', 'pressKey', 'dragDrop', 'uploadFile', 'paste',
+    'waitForSelector', 'delay', 'networkIdle', 'waitForUrl', 'waitForVisible',
+    'extract', 'extractTable', 'getCurrentUrl', 'getValue', 'screenshot', 'countElements',
+    'condition', 'loop', 'merge', 'forEach', 'tryCatch',
+    'injectCredentials', 'switchAccount',
     'sendToBackend', 'saveLocally',
+    'setVariable', 'setArray', 'setObject',
+    'goBack', 'goForward', 'reload', 'openTab', 'closeTab', 'switchTab', 'runScript',
+    'notifyUser',
   ];
   expect(Object.keys(HANDLE_TYPES).sort()).toEqual(expectedKeys.sort());
 });
