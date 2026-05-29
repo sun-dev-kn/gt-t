@@ -141,6 +141,81 @@ function nodeToCommand(node: WorkflowNode): UiVisionCommand | null {
     case 'saveLocally':
       return { Command: 'comment', Target: 'saveLocally', Value: '', Description: id };
 
+    // New browser actions
+    case 'doubleClick':
+      return { Command: 'doubleClick', Target: data.selector, Value: '', Description: id };
+    case 'rightClick':
+      return { Command: 'rightClickAt', Target: data.selector, Value: '', Description: id };
+    case 'selectOption':
+      return { Command: 'select', Target: data.selector, Value: data.value, Description: id };
+    case 'check':
+      return { Command: data.checked ? 'check' : 'uncheck', Target: data.selector, Value: '', Description: id };
+    case 'pressKey':
+      return { Command: 'sendKeys', Target: '', Value: data.key, Description: id };
+    case 'dragDrop':
+      return { Command: 'dragAndDropToObject', Target: data.sourceSelector, Value: data.targetSelector, Description: id };
+    case 'uploadFile':
+      return { Command: 'type', Target: data.selector, Value: data.fileName, Description: id };
+    case 'paste':
+      return { Command: 'type', Target: data.selector, Value: data.text, Description: id };
+
+    // New wait
+    case 'waitForUrl':
+      return { Command: 'waitForCondition', Target: data.pattern, Value: `${data.timeoutMs}`, Description: id };
+    case 'waitForVisible':
+      return {
+        Command: data.visible ? 'waitForElementVisible' : 'waitForElementNotPresent',
+        Target: data.selector,
+        Value: `${data.timeoutMs}`,
+        Description: id,
+      };
+
+    // New data
+    case 'getCurrentUrl':
+      return { Command: 'storeLocation', Target: '', Value: data.varName, Description: id };
+    case 'getValue':
+      return { Command: 'storeValue', Target: data.selector, Value: data.varName, Description: id };
+    case 'screenshot':
+      return { Command: 'captureScreenshot', Target: '', Value: data.varName, Description: id };
+    case 'countElements':
+      return { Command: 'storeXpathCount', Target: data.selector, Value: data.varName, Description: id };
+
+    // New control
+    case 'forEach':
+      return { Command: 'forEach', Target: data.listVar, Value: data.itemVar, Description: id };
+    case 'tryCatch':
+      return { Command: 'comment', Target: 'tryCatch', Value: '', Description: id };
+
+    // New variables
+    case 'setVariable':
+      return { Command: 'store', Target: data.value, Value: data.varName, Description: id };
+    case 'setArray':
+      return { Command: 'store', Target: JSON.stringify(data.items), Value: data.varName, Description: id };
+    case 'setObject': {
+      const obj = Object.fromEntries(data.pairs.map((p: { key: string; value: string }) => [p.key, p.value]));
+      return { Command: 'store', Target: JSON.stringify(obj), Value: data.varName, Description: id };
+    }
+
+    // New page/tab
+    case 'goBack':
+      return { Command: 'goBack', Target: '', Value: '', Description: id };
+    case 'goForward':
+      return { Command: 'goForward', Target: '', Value: '', Description: id };
+    case 'reload':
+      return { Command: 'refresh', Target: '', Value: '', Description: id };
+    case 'openTab':
+      return { Command: 'open', Target: data.url, Value: '', Description: id };
+    case 'closeTab':
+      return { Command: 'closeWindow', Target: '', Value: '', Description: id };
+    case 'switchTab':
+      return { Command: 'selectWindow', Target: data.urlPattern, Value: '', Description: id };
+    case 'runScript':
+      return { Command: 'executeScript', Target: data.script, Value: data.varName ?? '', Description: id };
+
+    // Human
+    case 'notifyUser':
+      return { Command: 'comment', Target: `notify: ${data.title}`, Value: data.message, Description: id };
+
     default:
       return null;
   }
