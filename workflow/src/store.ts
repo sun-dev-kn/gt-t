@@ -208,7 +208,6 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
     }
     const { workflowDomain } = get();
     set({ recordingState: 'recording', capturedEvents: [] });
-    // @ts-expect-error — chrome global available at extension runtime
     _recordingPort = chrome.runtime.connect({ name: 'designer-relay' });
     _recordingPort.onMessage.addListener((msg: { type: string; event?: RecordedEvent; events?: RecordedEvent[]; reason?: string }) => {
       if (msg.type === 'LIVE_EVENT' && msg.event) {
