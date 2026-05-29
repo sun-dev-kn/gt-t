@@ -44,12 +44,19 @@
       ],
       "run_at": "document_idle",
       "all_frames": true
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["recorder.js"],
+      "run_at": "document_idle",
+      "all_frames": false
     }
   ],
   "web_accessible_resources": [
     {
       "resources": [
-        "content_script.js"
+        "content_script.js",
+        "recorder.js"
       ],
       "matches": [
         "<all_urls>"

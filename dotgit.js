@@ -271,6 +271,15 @@ let blacklist = [];
 let processingUrls = new Set();
 let debug = false;
 
+// ─── Recording state ──────────────────────────────────────────────────────────
+const recording = {
+  active: false,
+  tabId: null,
+  events: [],
+  recorderPort: null,
+  designerPort: null,
+};
+
 function debugLog(...args) {
     if (debug) {
         console.log('[DotGit Debug]', ...args);
@@ -969,5 +978,67 @@ browser.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === ALARM_NAME) {
         runScrapeCycle().catch(() => {});
     }
+});
+
+chrome.runtime.onConnect.addListener((port) => {
+  if (port.name === 'recorder') {
+    recording.recorderPort = port;
+    port.onMessage.addListener((msg) => {
+      if (msg.type === 'RECORDED_EVENT') {
+        recording.events.push(msg.event);
+        recording.designerPort?.postMessage({ type: 'LIVE_EVENT', event: msg.event });
+      }
+    });
+    port.onDisconnect.addListener(() => {
+      recording.recorderPort = null;
+      if (recording.active) {
+        recording.designerPort?.postMessage({ type: 'RECORDING_ERROR', reason: 'tab_closed' });
+        recording.active = false;
+      }
+    });
+  }
+
+  if (port.name === 'designer-relay') {
+    recording.designerPort = port;
+    port.onMessage.addListener((msg) => {
+      if (msg.type === 'RECORDING_START') {
+        recording.active = true;
+        recording.events = [];
+        const domain = msg.domain || 'about:blank';
+        const url = domain.startsWith('http') ? domain : `https://${domain}`;
+        chrome.tabs.create({ url }, (tab) => {
+          recording.tabId = tab.id;
+          // Wait for tab to finish loading before activating recorder
+          const listener = (tabId, info) => {
+            if (tabId === recording.tabId && info.status === 'complete') {
+              chrome.tabs.onUpdated.removeListener(listener);
+              chrome.tabs.sendMessage(recording.tabId, { type: 'RECORDER_ACTIVATE' }).catch(() => {});
+            }
+          };
+          chrome.tabs.onUpdated.addListener(listener);
+        });
+      }
+
+      if (msg.type === 'RECORDING_STOP') {
+        recording.active = false;
+        recording.designerPort?.postMessage({ type: 'RECORDING_COMPLETE', events: recording.events });
+        if (recording.tabId !== null) {
+          chrome.tabs.remove(recording.tabId).catch(() => {});
+          recording.tabId = null;
+        }
+        recording.events = [];
+      }
+    });
+
+    port.onDisconnect.addListener(() => {
+      recording.designerPort = null;
+      if (recording.active && recording.tabId !== null) {
+        chrome.tabs.remove(recording.tabId).catch(() => {});
+      }
+      recording.active = false;
+      recording.tabId = null;
+      recording.events = [];
+    });
+  }
 });
 
