@@ -60,3 +60,8 @@
   color: #fff;
   border-color: #e94560;
 }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}

@@ -9,6 +9,7 @@ vi.mock('@xyflow/react', () => ({
   ReactFlow: ({ children }: { children?: React.ReactNode }) => <div data-testid="react-flow">{children}</div>,
   Background: () => null,
   Controls: () => null,
+  MiniMap: () => null,
   addEdge: vi.fn(),
   applyNodeChanges: vi.fn((_, nodes) => nodes),
   applyEdgeChanges: vi.fn((_, edges) => edges),
@@ -18,6 +19,7 @@ vi.mock('@xyflow/react', () => ({
 vi.mock('../components/NodeLibrary', () => ({ NodeLibrary: () => <div data-testid="node-library" /> }));
 vi.mock('../components/Inspector', () => ({ Inspector: () => <div data-testid="inspector" /> }));
 vi.mock('../components/Toolbar', () => ({ Toolbar: () => <div data-testid="toolbar" /> }));
+vi.mock('../components/RecordingPanel', () => ({ RecordingPanel: () => null }));
 
 describe('App', () => {
   it('renders main layout components', () => {

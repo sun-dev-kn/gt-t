@@ -14,6 +14,7 @@ import { edgeTypes } from './edges';
 import { NodeLibrary } from './components/NodeLibrary';
 import { Inspector } from './components/Inspector';
 import { Toolbar } from './components/Toolbar';
+import { RecordingPanel } from './components/RecordingPanel';
 import type { NodeData } from './types';
 
 function getDefaultData(nodeType: string): NodeData | null {
@@ -168,6 +169,7 @@ export default function App() {
           </ReactFlow>
         </div>
         <Inspector />
+        <RecordingPanel />
       </div>
     </div>
   );
