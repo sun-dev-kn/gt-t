@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:recorder": "vite build -c vite.recorder.config.ts",
     "test": "vitest run --reporter=verbose",
     "test:watch": "vitest"
   },
