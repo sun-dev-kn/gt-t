@@ -41,6 +41,67 @@ const inputStyle: React.CSSProperties = {
   boxSizing: 'border-box',
 };
 
+// ─── Node descriptions ────────────────────────────────────────────────────────
+
+const NODE_DESCRIPTIONS: Record<string, string> = {
+  // Trigger
+  schedule:           'Starts the workflow automatically on a repeating interval. Set how often (in hours) it should run.',
+  manual:             'Starts the workflow when triggered manually from the extension popup.',
+  // Browser
+  navigate:           'Opens a URL in the current tab. Execution continues once the page finishes loading.',
+  click:              'Clicks an element matched by the CSS selector. Fails if the element is not found.',
+  fill:               'Types text into an input or textarea matched by the selector.',
+  scroll:             'Scrolls the matched element (or page) by the given number of pixels.',
+  hover:              'Moves the mouse over an element to trigger hover effects without clicking.',
+  doubleClick:        'Double-clicks an element — useful for activating inline editors or selecting words.',
+  rightClick:         'Right-clicks an element to open its context menu.',
+  selectOption:       'Selects an option in a <select> dropdown by its value.',
+  check:              'Checks or unchecks a checkbox or radio button.',
+  pressKey:           'Sends a keyboard key or shortcut to the focused element. Use modifier syntax like Control+a or Shift+Tab.',
+  dragDrop:           'Drags an element from the source selector and drops it on the target selector.',
+  uploadFile:         'Simulates a file upload by setting the file path on an <input type="file"> element.',
+  paste:              'Pastes text into a focused input as if from the clipboard.',
+  // Wait
+  waitForSelector:    'Pauses execution until an element matching the selector appears in the DOM.',
+  delay:              'Waits a fixed number of milliseconds before continuing to the next node.',
+  networkIdle:        'Waits until there are no active network requests — useful after page loads or AJAX calls.',
+  waitForUrl:         'Waits until the current page URL matches the given pattern (glob or substring).',
+  waitForVisible:     'Waits until an element becomes visible or hidden on the page.',
+  // Data
+  extract:            'Scrapes one or more fields from the page using CSS selectors and stores them in a variable.',
+  extractTable:       'Extracts all rows of an HTML table into a list of objects stored in a variable.',
+  getCurrentUrl:      'Reads the current page URL and saves it to a variable.',
+  getValue:           'Reads the value of an input field or element attribute and saves it to a variable.',
+  screenshot:         'Captures a screenshot of the current viewport and stores it as a base64 string.',
+  countElements:      'Counts how many elements match the selector and stores the number in a variable.',
+  // Control
+  condition:          'Branches execution based on whether a variable meets a condition — true path or false path.',
+  loop:               'Repeats the inner branch up to a maximum number of times, controlled by a boolean variable.',
+  merge:              'Joins multiple execution paths back into one. Accepts up to three incoming connections.',
+  forEach:            'Iterates over a list variable, running the body branch once per item.',
+  tryCatch:           'Runs the try branch; if any node throws an error, execution continues on the catch branch instead.',
+  // Account
+  injectCredentials:  'Fills login fields with credentials from the currently active account pool entry.',
+  switchAccount:      'Rotates to the next available account in the pool and injects its credentials.',
+  // Output
+  sendToBackend:      'POSTs the collected data to the configured backend endpoint as JSON.',
+  saveLocally:        'Saves the collected data to the browser\'s local storage for later retrieval.',
+  // Variable
+  setVariable:        'Assigns a value to a named variable. Supports ${varName} interpolation in the value.',
+  setArray:           'Creates or replaces a list variable with the given items (one per line).',
+  setObject:          'Creates or replaces an object variable with the given key-value pairs.',
+  // Page / Tab
+  goBack:             'Navigates the current tab one step backward in browser history.',
+  goForward:          'Navigates the current tab one step forward in browser history.',
+  reload:             'Reloads the current page.',
+  openTab:            'Opens a new browser tab at the specified URL.',
+  closeTab:           'Closes the currently controlled tab.',
+  switchTab:          'Switches focus to the tab whose URL matches the given pattern.',
+  runScript:          'Executes arbitrary JavaScript in the page context. The return value can be stored in a variable.',
+  // Human
+  notifyUser:         'Shows a notification to the user. Can optionally pause workflow execution until it is dismissed.',
+};
+
 // ─── NodeForm ─────────────────────────────────────────────────────────────────
 
 interface NodeFormProps {
@@ -690,6 +751,19 @@ export function Inspector() {
       >
         {selectedNode.type}
       </div>
+      {NODE_DESCRIPTIONS[selectedNode.data.subtype] && (
+        <div
+          style={{
+            padding: '8px 14px 4px',
+            fontSize: 12,
+            color: '#64748b',
+            lineHeight: 1.5,
+            borderBottom: '1px solid #1e293b',
+          }}
+        >
+          {NODE_DESCRIPTIONS[selectedNode.data.subtype]}
+        </div>
+      )}
       <div style={{ padding: '12px 14px' }}>
         <NodeForm
           node={selectedNode}
