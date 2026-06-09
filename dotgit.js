@@ -131,6 +131,7 @@ const DEFAULT_OPTIONS = {
         "relayApiKey": "",
     },
     "syncSettings": false,  // when true, settings are also mirrored to chrome.storage.sync
+    "severityOverrides": {},  // { [checkId]: 'critical' | 'high' | 'medium' | 'info' }
 };
 
 async function saveOptions(opts) {

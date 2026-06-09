@@ -1182,9 +1182,11 @@ if (typeof window.dotGitInjected === 'undefined') {
             debugLog('Check results:', resultObj);
             debugLog('Found types:', types);
 
-            // Build severity map from registry
+            // Build severity map from registry, applying any user overrides
             const severityMap = {};
-            enabledChecks.forEach(check => { severityMap[check.id] = check.severity; });
+            enabledChecks.forEach(check => {
+                severityMap[check.id] = (options?.severityOverrides?.[check.id]) || check.severity;
+            });
 
             if (types.length > 0) {
                 for (const type of types) {
@@ -1252,12 +1254,13 @@ if (typeof window.dotGitInjected === 'undefined') {
                 if (result?.status === 200 && result.bodySnippet) {
                     try {
                         if (check.validate(result.bodySnippet)) {
+                            const effectiveSeverity = (options?.severityOverrides?.[check.id]) || check.severity || 'medium';
                             chrome.runtime.sendMessage({
                                 type: "FINDINGS_FOUND",
                                 data: {
                                     url: origin,
                                     types: [check.id],
-                                    severity: check.severity || 'medium',
+                                    severity: effectiveSeverity,
                                 }
                             });
                             if (check.matchAny) break;

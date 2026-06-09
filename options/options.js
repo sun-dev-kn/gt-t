@@ -74,9 +74,48 @@ function set_gui(options) {
     document.getElementById("blacklist").value = options.blacklist.join(", ");
 }
 
+function initSeverityOverrides(options) {
+    const overrides = options.severityOverrides || {};
+    for (const checkId of FUNCTION_IDS) {
+        // Skip if a select already exists (idempotent)
+        if (document.getElementById('sev-' + checkId)) continue;
+
+        // Find the "On" radio button for this check — id = checkId + "On"
+        const onRadio = document.getElementById(checkId + 'On');
+        if (!onRadio) continue;
+
+        const sel = document.createElement('select');
+        sel.id = 'sev-' + checkId;
+        sel.title = 'Override severity for ' + checkId;
+        sel.style.cssText = 'font-size:11px;margin-left:8px;vertical-align:middle;padding:1px 2px;';
+
+        for (const val of ['', 'critical', 'high', 'medium', 'info']) {
+            const opt = document.createElement('option');
+            opt.value = val;
+            opt.textContent = val || 'default';
+            if ((overrides[checkId] || '') === val) opt.selected = true;
+            sel.appendChild(opt);
+        }
+
+        sel.addEventListener('change', function () {
+            if (!options.severityOverrides) options.severityOverrides = {};
+            if (this.value) {
+                options.severityOverrides[checkId] = this.value;
+            } else {
+                delete options.severityOverrides[checkId];
+            }
+            chrome.storage.local.set({ options });
+        });
+
+        // Append to parent div of the "On" radio (the title-option div)
+        onRadio.parentElement?.appendChild(sel);
+    }
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     chrome.storage.local.get(["options"], function (result) {
         set_gui(result.options);
+        initSeverityOverrides(result.options);
 
         const syncEl = document.getElementById('sync-settings');
         if (syncEl) {
