@@ -3,6 +3,9 @@ if (typeof window.dotGitInjected === 'undefined') {
 
     let debug = false;
 
+    // Per-origin rate limiting state for stealth mode
+    const rateLimitMap = new Map(); // origin → { count403: number, suspended: boolean, suspendedUntil: number }
+
     function debugLog(...args) {
         if (debug) {
             console.log('[DotGit]', ...args);
@@ -879,29 +882,89 @@ if (typeof window.dotGitInjected === 'undefined') {
     const GIT_CONFIG_SEARCH = "url = (.*(github\\.com|gitlab\\.com).*)";
 
     // =============================================
+    // Stealth helpers
+    // =============================================
+    function buildStealthHeaders(origin) {
+        return {
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Cache-Control": "no-cache",
+            "Pragma": "no-cache",
+            "Referer": origin + "/",
+        };
+    }
+
+    function randomDelay(min, max) {
+        return new Promise(r => setTimeout(r, min + Math.random() * (max - min)));
+    }
+
+    function isOriginSuspended(origin) {
+        const state = rateLimitMap.get(origin);
+        if (!state?.suspended) return false;
+        if (Date.now() > state.suspendedUntil) {
+            state.suspended = false;
+            return false;
+        }
+        return true;
+    }
+
+    function markRateLimited(origin) {
+        rateLimitMap.set(origin, {
+            count403: 0,
+            suspended: true,
+            suspendedUntil: Date.now() + 5 * 60 * 1000, // 5 minutes
+        });
+    }
+
+    function trackHttp403(origin) {
+        const state = rateLimitMap.get(origin) || { count403: 0, suspended: false, suspendedUntil: 0 };
+        state.count403 = (state.count403 || 0) + 1;
+        rateLimitMap.set(origin, state);
+        if (state.count403 >= 5) {
+            markRateLimited(origin);
+            return true; // suspended
+        }
+        return false;
+    }
+
+    // =============================================
     // Generic check runner
     // =============================================
     async function fetchWithTimeout(resource, options = {}) {
-        const { timeout = 10000 } = options;
+        const { timeout = 10000, stealthHeaders, ...fetchOptions } = options;
         const controller = new AbortController();
         const id = setTimeout(() => controller.abort(), timeout);
+        const mergedHeaders = stealthHeaders ? { ...stealthHeaders, ...(fetchOptions.headers || {}) } : fetchOptions.headers;
         const response = await fetch(resource, {
-            ...options,
-            signal: controller.signal
+            ...fetchOptions,
+            headers: mergedHeaders,
+            signal: controller.signal,
         });
         clearTimeout(id);
         return response;
     }
 
-    async function runCheck(url, checkDef) {
+    async function runCheck(url, checkDef, options = {}) {
         for (const path of checkDef.paths) {
             const to_check = url + path;
             try {
                 debugLog(`Checking ${checkDef.id}:`, to_check);
-                const response = await fetchWithTimeout(to_check, {
+                const fetchOpts = {
                     redirect: "manual",
-                    timeout: 10000
-                });
+                    timeout: 10000,
+                };
+                if (options.stealth?.enabled && options.stealth?.realisticHeaders) {
+                    fetchOpts.stealthHeaders = buildStealthHeaders(url);
+                }
+                const response = await fetchWithTimeout(to_check, fetchOpts);
+
+                if (response.status === 429 && options.stealth?.rateLimitBackoff) {
+                    markRateLimited(url);
+                    return false; // stop checking this origin
+                }
+                if (response.status === 403 && options.stealth?.rateLimitBackoff) {
+                    if (trackHttp403(url)) return false; // suspended
+                }
 
                 if (response.status === 200) {
                     const text = await response.text();
@@ -1020,28 +1083,73 @@ if (typeof window.dotGitInjected === 'undefined') {
     // =============================================
     // Main site check — runs all enabled checks
     // =============================================
-    async function checkSite(url, options) {
+    async function checkSite(url, options, dynamicChecks = []) {
         try {
             debugLog('Starting site check for:', url);
 
-            // Build list of enabled checks from registry
-            const enabledChecks = CHECK_REGISTRY.filter(
-                check => options.functions[check.id]
+            // Hydrate dynamic checks
+            const hydratedDynamic = dynamicChecks.map(c => {
+                try {
+                    return {
+                        ...c,
+                        paths: typeof c.paths === 'string' ? JSON.parse(c.paths) : c.paths,
+                        validate: c.validate_js ? new Function('text', c.validate_js) : () => true,
+                    };
+                } catch {
+                    return null;
+                }
+            }).filter(Boolean);
+
+            // Deduplicate by id (static registry first, dynamic appended)
+            const seenIds = new Set();
+            const mergedRegistry = [...CHECK_REGISTRY, ...hydratedDynamic].filter(c => {
+                if (seenIds.has(c.id)) return false;
+                seenIds.add(c.id);
+                return true;
+            });
+
+            // Filter enabled checks: static gated by options.functions, dynamic always enabled
+            const enabledChecks = mergedRegistry.filter(check =>
+                check.id && check.id.startsWith('dynamic_')
+                    ? true
+                    : options.functions?.[check.id]
             );
 
-            // Run all enabled checks + special checks in parallel
-            const checkPromises = enabledChecks.map(check => runCheck(url, check));
+            // Stealth: shuffle check order
+            if (options.stealth?.enabled && options.stealth?.shufflePaths) {
+                enabledChecks.sort(() => Math.random() - 0.5);
+            }
+
+            // Stealth: check if origin is rate-limited
+            if (options.stealth?.enabled && options.stealth?.rateLimitBackoff && isOriginSuspended(url)) {
+                debugLog('Stealth: origin suspended, skipping', url);
+                return;
+            }
+
+            // Stealth Tier 2: relay mode — send all probes to relay server
+            if (options.stealth?.enabled && options.stealth?.relayEnabled && options.stealth?.relayUrl) {
+                return checkSiteViaRelay(url, enabledChecks, options);
+            }
+
+            // Run checks
+            let checkResults;
+            if (options.stealth?.enabled && options.stealth?.mode === 'sequential') {
+                checkResults = [];
+                for (const check of enabledChecks) {
+                    checkResults.push(await runCheck(url, check, options));
+                    await randomDelay(options.stealth.minDelay || 500, options.stealth.maxDelay || 3000);
+                }
+            } else {
+                // existing parallel execution
+                checkResults = await Promise.all(enabledChecks.map(check => runCheck(url, check, options)));
+            }
+
+            // Run special checks in parallel
             const specialPromises = [
                 options.check_securitytxt ? checkSecuritytxt(url) : Promise.resolve(false),
-                options.functions.git && options.check_opensource ? isOpenSource(url) : Promise.resolve(false)
+                options.functions?.git && options.check_opensource ? isOpenSource(url) : Promise.resolve(false)
             ];
-
-            const results = await Promise.all([...checkPromises, ...specialPromises]);
-
-            // Split results
-            const checkResults = results.slice(0, enabledChecks.length);
-            const securitytxt = results[enabledChecks.length];
-            const opensource = results[enabledChecks.length + 1];
+            const [securitytxt, opensource] = await Promise.all(specialPromises);
 
             // Build types list and result object
             const types = [];
@@ -1093,6 +1201,56 @@ if (typeof window.dotGitInjected === 'undefined') {
         }
     }
 
+    // =============================================
+    // Relay-mode check — routes probes through relay server
+    // =============================================
+    async function checkSiteViaRelay(origin, enabledChecks, options) {
+        const { relayUrl, relayApiKey, relayEnabled } = options.stealth || {};
+        if (!relayEnabled || !relayUrl) return;
+
+        const allPaths = [...new Set(enabledChecks.flatMap(c => c.paths || []))];
+
+        let results;
+        try {
+            const res = await fetch(`${relayUrl}/api/probe`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(relayApiKey ? { "Authorization": `Bearer ${relayApiKey}` } : {}),
+                },
+                body: JSON.stringify({ targetUrl: origin, paths: allPaths, timeoutMs: 8000 }),
+                signal: AbortSignal.timeout(60000),
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            results = data.results || [];
+        } catch (err) {
+            return;
+        }
+
+        // Map relay results back to findings using each check's validate function
+        for (const check of enabledChecks) {
+            for (const path of (check.paths || [])) {
+                const result = results.find(r => r.path === path);
+                if (result?.status === 200 && result.bodySnippet) {
+                    try {
+                        if (check.validate(result.bodySnippet)) {
+                            chrome.runtime.sendMessage({
+                                type: "FINDINGS_FOUND",
+                                data: {
+                                    url: origin,
+                                    types: [check.id],
+                                    severity: check.severity || 'medium',
+                                }
+                            });
+                            if (check.matchAny) break;
+                        }
+                    } catch {}
+                }
+            }
+        }
+    }
+
     // Expose registry for external access
     window.dotGitCheckRegistry = CHECK_REGISTRY;
 
@@ -1105,7 +1263,7 @@ if (typeof window.dotGitInjected === 'undefined') {
             debug = options.debug;
             debugLog('Checking site:', url, 'with options:', options);
 
-            checkSite(url, options).then((results) => {
+            checkSite(url, options, request.dynamicChecks || []).then((results) => {
                 sendResponse(results);
             }).catch(error => {
                 debugLog('Error during checks:', error);
