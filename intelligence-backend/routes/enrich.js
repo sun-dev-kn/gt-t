@@ -1,0 +1,33 @@
+import { Router } from 'express';
+import { enrichFinding } from '../services/enricher.js';
+
+const router = Router();
+
+router.post('/enrich', async (req, res) => {
+  const { check_id, check_label, site_url, matched_path, response_snippet } = req.body;
+
+  if (!check_id || !site_url || !matched_path) {
+    return res.status(400).json({ error: 'check_id, site_url, and matched_path are required' });
+  }
+
+  try {
+    const enrichment = await enrichFinding({
+      checkId: check_id,
+      checkLabel: check_label || check_id,
+      siteUrl: site_url,
+      matchedPath: matched_path,
+      responseSnippet: response_snippet || '',
+    });
+
+    if (!enrichment) {
+      return res.status(503).json({ error: 'Enrichment failed — AI unavailable' });
+    }
+
+    res.json(enrichment);
+  } catch (err) {
+    console.error('[enrich route]', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+export default router;

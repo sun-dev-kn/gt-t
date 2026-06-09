@@ -1,0 +1,17 @@
+{
+  "name": "dotgit-intelligence-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Vulnerability intelligence backend for DotGit",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.36.3",
+    "better-sqlite3": "^11.6.0",
+    "express": "^4.21.2",
+    "node-fetch": "^3.3.2"
+  }
+}
