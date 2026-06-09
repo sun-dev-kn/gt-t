@@ -11,4 +11,9 @@ export default defineConfig({
       input: 'workflow.html',
     },
   },
+  test: {
+    include: ['src/**/*.{test,spec}.{ts,tsx,js}', '../lib/**/*.test.js'],
+    environment: 'jsdom',
+    globals: true,
+  },
 });
