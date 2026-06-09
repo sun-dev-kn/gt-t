@@ -1,10 +1,33 @@
 .idea
 workflow/node_modules/
 workflow/dist/
+workflow/tsconfig.tsbuildinfo
+workflow/coverage/
 .web-ext-artifacts/
 node_modules/
+relay-server/node_modules/
+intelligence-backend/node_modules/
 .vite/
 .superpowers/
 .claude/
 .zencoder/
 .zenflow/
+
+# Environment files with secrets
+.env
+.env.local
+*.env
+intelligence-backend/.env
+relay-server/.env
+
+# SQLite database files (intelligence backend)
+*.db
+*.db-wal
+*.db-shm
+
+# Test coverage
+coverage/
+
+# OS
+.DS_Store
+Thumbs.db
