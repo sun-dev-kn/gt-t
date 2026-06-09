@@ -6,6 +6,23 @@ if (typeof window.dotGitInjected === 'undefined') {
     // Per-origin rate limiting state for stealth mode
     const rateLimitMap = new Map(); // origin → { count403: number, suspended: boolean, suspendedUntil: number }
 
+    function safeValidate(validateJs, text) {
+        if (!validateJs || typeof validateJs !== 'string') return true;
+        const src = validateJs.trim();
+        if (src === 'return true' || src === 'return true;') return true;
+        if (src === 'return false' || src === 'return false;') return false;
+        const regexMatch = src.match(/^return\s+\/(.+?)\/([gimsuy]*)\s*\.test\(text\)\s*;?$/);
+        if (regexMatch) {
+            try { return new RegExp(regexMatch[1], regexMatch[2]).test(text); }
+            catch { return false; }
+        }
+        const includesMatch = src.match(/^return\s+text\.includes\((['"])(.+?)\1\)\s*;?$/);
+        if (includesMatch) return text.includes(includesMatch[2]);
+        const startsMatch = src.match(/^return\s+text\.startsWith\((['"])(.+?)\1\)\s*;?$/);
+        if (startsMatch) return text.startsWith(startsMatch[2]);
+        return false;
+    }
+
     function debugLog(...args) {
         if (debug) {
             console.log('[DotGit]', ...args);
@@ -1093,7 +1110,7 @@ if (typeof window.dotGitInjected === 'undefined') {
                     return {
                         ...c,
                         paths: typeof c.paths === 'string' ? JSON.parse(c.paths) : c.paths,
-                        validate: c.validate_js ? new Function('text', c.validate_js) : () => true,
+                        validate: (text) => safeValidate(c.validate_js, text),
                     };
                 } catch {
                     return null;

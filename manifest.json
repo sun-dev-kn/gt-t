@@ -56,7 +56,8 @@
     {
       "resources": [
         "content_script.js",
-        "recorder.js"
+        "recorder.js",
+        "lib/validate-sandbox.js"
       ],
       "matches": [
         "<all_urls>"
