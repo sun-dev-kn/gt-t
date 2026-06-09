@@ -310,6 +310,165 @@ initScraperSection().catch((err) => {
   if (statusEl) statusEl.textContent = "❌ Failed to load scraper settings";
 });
 
+// ---- STEALTH SETTINGS ----
+function initStealthSection() {
+  chrome.storage.local.get(["options"], function(result) {
+    const stealth = result.options?.stealth || {};
+
+    const enabledEl = document.getElementById('stealth-enabled');
+    if (!enabledEl) return;
+
+    enabledEl.checked = !!stealth.enabled;
+    document.getElementById('stealth-mode-parallel').checked = stealth.mode !== 'sequential';
+    document.getElementById('stealth-mode-sequential').checked = stealth.mode === 'sequential';
+    document.getElementById('stealth-min-delay').value = stealth.minDelay || 500;
+    document.getElementById('stealth-min-delay-val').textContent = stealth.minDelay || 500;
+    document.getElementById('stealth-max-delay').value = stealth.maxDelay || 3000;
+    document.getElementById('stealth-max-delay-val').textContent = stealth.maxDelay || 3000;
+    document.getElementById('stealth-realistic-headers').checked = stealth.realisticHeaders !== false;
+    document.getElementById('stealth-shuffle-paths').checked = stealth.shufflePaths !== false;
+    document.getElementById('stealth-rate-limit-backoff').checked = stealth.rateLimitBackoff !== false;
+    document.getElementById('stealth-relay-enabled').checked = !!stealth.relayEnabled;
+    document.getElementById('stealth-relay-url').value = stealth.relayUrl || '';
+    document.getElementById('stealth-relay-api-key').value = stealth.relayApiKey || '';
+
+    // Show/hide dependent sections
+    const showOptions = stealth.enabled;
+    document.getElementById('stealth-options').style.display = showOptions ? '' : 'none';
+    document.getElementById('stealth-toggles').style.display = showOptions ? '' : 'none';
+    document.getElementById('stealth-relay-row').style.display = showOptions ? '' : 'none';
+    document.getElementById('stealth-save-row').style.display = showOptions ? '' : 'none';
+
+    const showDelay = showOptions && stealth.mode === 'sequential';
+    document.getElementById('stealth-delay-row').style.display = showDelay ? '' : 'none';
+
+    const showRelay = showOptions && stealth.relayEnabled;
+    document.getElementById('stealth-relay-url-col').style.display = showRelay ? '' : 'none';
+    document.getElementById('stealth-relay-key-col').style.display = showRelay ? '' : 'none';
+
+    // Event: master toggle
+    enabledEl.addEventListener('change', function() {
+      const enabled = this.checked;
+      document.getElementById('stealth-options').style.display = enabled ? '' : 'none';
+      document.getElementById('stealth-toggles').style.display = enabled ? '' : 'none';
+      document.getElementById('stealth-relay-row').style.display = enabled ? '' : 'none';
+      document.getElementById('stealth-save-row').style.display = enabled ? '' : 'none';
+      if (!enabled) {
+        document.getElementById('stealth-delay-row').style.display = 'none';
+        document.getElementById('stealth-relay-url-col').style.display = 'none';
+        document.getElementById('stealth-relay-key-col').style.display = 'none';
+      }
+    });
+
+    // Event: sequential mode toggle shows delay sliders
+    document.getElementById('stealth-mode-sequential').addEventListener('change', function() {
+      document.getElementById('stealth-delay-row').style.display = this.checked ? '' : 'none';
+    });
+    document.getElementById('stealth-mode-parallel').addEventListener('change', function() {
+      document.getElementById('stealth-delay-row').style.display = 'none';
+    });
+
+    // Event: relay toggle shows URL/key fields
+    document.getElementById('stealth-relay-enabled').addEventListener('change', function() {
+      document.getElementById('stealth-relay-url-col').style.display = this.checked ? '' : 'none';
+      document.getElementById('stealth-relay-key-col').style.display = this.checked ? '' : 'none';
+    });
+
+    // Event: live slider value display
+    document.getElementById('stealth-min-delay').addEventListener('input', function() {
+      document.getElementById('stealth-min-delay-val').textContent = this.value;
+    });
+    document.getElementById('stealth-max-delay').addEventListener('input', function() {
+      document.getElementById('stealth-max-delay-val').textContent = this.value;
+    });
+
+    // Event: save button
+    document.getElementById('save-stealth-settings').addEventListener('click', function() {
+      const newStealth = {
+        enabled: document.getElementById('stealth-enabled').checked,
+        mode: document.getElementById('stealth-mode-sequential').checked ? 'sequential' : 'parallel',
+        minDelay: parseInt(document.getElementById('stealth-min-delay').value, 10),
+        maxDelay: parseInt(document.getElementById('stealth-max-delay').value, 10),
+        realisticHeaders: document.getElementById('stealth-realistic-headers').checked,
+        shufflePaths: document.getElementById('stealth-shuffle-paths').checked,
+        rateLimitBackoff: document.getElementById('stealth-rate-limit-backoff').checked,
+        relayEnabled: document.getElementById('stealth-relay-enabled').checked,
+        relayUrl: document.getElementById('stealth-relay-url').value.trim(),
+        relayApiKey: document.getElementById('stealth-relay-api-key').value.trim(),
+      };
+      chrome.storage.local.get(["options"], function(r) {
+        const opts = r.options || {};
+        opts.stealth = newStealth;
+        chrome.storage.local.set({ options: opts }, function() {
+          chrome.runtime.sendMessage({ type: "OPTIONS_UPDATED", options: opts });
+          const status = document.getElementById('stealth-save-status');
+          status.textContent = 'Saved';
+          setTimeout(() => { status.textContent = ''; }, 2000);
+        });
+      });
+    });
+  });
+}
+
+// ---- VULNERABILITY INTELLIGENCE SETTINGS ----
+function initIntelSection() {
+  const urlEl = document.getElementById('intel-backend-url');
+  if (!urlEl) return;
+
+  // Load current settings
+  chrome.storage.local.get(["intelSettings", "intelLastFetch", "dynamicChecks"], function(result) {
+    const s = result.intelSettings || {};
+    urlEl.value = s.intelBackendUrl || '';
+    document.getElementById('intel-api-key').value = s.intelApiKey || '';
+
+    // Show last sync time
+    if (result.intelLastFetch) {
+      document.getElementById('intel-last-sync-label').textContent =
+        'Last sync: ' + new Date(result.intelLastFetch).toLocaleString();
+    }
+    const count = (result.dynamicChecks || []).length;
+    if (count > 0) {
+      document.getElementById('intel-check-count-label').textContent =
+        count + ' dynamic check' + (count === 1 ? '' : 's') + ' loaded';
+    }
+  });
+
+  // Save settings
+  document.getElementById('save-intel-settings').addEventListener('click', function() {
+    const settings = {
+      intelBackendUrl: document.getElementById('intel-backend-url').value.trim(),
+      intelApiKey: document.getElementById('intel-api-key').value.trim(),
+    };
+    chrome.storage.local.set({ intelSettings: settings }, function() {
+      chrome.runtime.sendMessage({ type: "INTEL_SETTINGS_UPDATED", settings: settings });
+      const status = document.getElementById('intel-save-status');
+      status.textContent = 'Saved';
+      setTimeout(() => { status.textContent = ''; }, 2000);
+    });
+  });
+
+  // Sync now
+  document.getElementById('intel-refresh-now').addEventListener('click', function() {
+    chrome.runtime.sendMessage({ type: "INTEL_REFRESH_NOW" });
+    const status = document.getElementById('intel-save-status');
+    status.textContent = 'Sync triggered...';
+    setTimeout(() => { status.textContent = ''; }, 3000);
+  });
+
+  // Force full re-sync (clears last fetch timestamp)
+  document.getElementById('intel-force-resync').addEventListener('click', function() {
+    chrome.storage.local.remove(["intelLastFetch"], function() {
+      chrome.runtime.sendMessage({ type: "INTEL_REFRESH_NOW" });
+      const status = document.getElementById('intel-save-status');
+      status.textContent = 'Full re-sync triggered...';
+      setTimeout(() => { status.textContent = ''; }, 3000);
+    });
+  });
+}
+
+initStealthSection();
+initIntelSection();
+
 // ---- WORKFLOW DESIGNER ----
 document.getElementById("open-workflow-designer")?.addEventListener("click", () => {
   browser.tabs.create({ url: browser.runtime.getURL("workflow/dist/workflow.html") });

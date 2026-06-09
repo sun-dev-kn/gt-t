@@ -922,5 +922,116 @@
     </table>
   </div>
 </section>
+<!-- STEALTH / RATE LIMITING SETTINGS -->
+<section class="option" id="stealth-section">
+  <div class="browser-style title-option" style="font-weight:bold; font-size:1.1em;">
+    Stealth / Rate Limiting
+  </div>
+
+  <!-- Master toggle -->
+  <div class="browser-style title-option">
+    <label>
+      <input type="checkbox" id="stealth-enabled" />
+      Enable stealth mode
+    </label>
+    <div style="margin-top:4px;font-size:13px;color:#555;">
+      Obfuscates scan probes with realistic headers, randomized timing, and rate-limit protection.
+    </div>
+  </div>
+
+  <!-- Scan mode -->
+  <div class="browser-style title-option" id="stealth-options" style="display:none;">
+    <strong>Scan mode</strong><br>
+    <label>
+      <input name="stealth-mode" type="radio" value="parallel" id="stealth-mode-parallel" checked />
+      Parallel (fast, default)
+    </label>
+    <br>
+    <label>
+      <input name="stealth-mode" type="radio" value="sequential" id="stealth-mode-sequential" />
+      Sequential (slow, stealthy)
+    </label>
+  </div>
+
+  <!-- Delay sliders (only visible in sequential mode) -->
+  <div class="browser-style title-option" id="stealth-delay-row" style="display:none;">
+    <label for="stealth-min-delay">Min delay (ms): <span id="stealth-min-delay-val">500</span></label>
+    <input type="range" id="stealth-min-delay" min="100" max="5000" step="100" value="500" style="width:200px;vertical-align:middle;" />
+    &nbsp;&nbsp;
+    <label for="stealth-max-delay">Max delay (ms): <span id="stealth-max-delay-val">3000</span></label>
+    <input type="range" id="stealth-max-delay" min="500" max="10000" step="100" value="3000" style="width:200px;vertical-align:middle;" />
+  </div>
+
+  <!-- Toggles -->
+  <div class="browser-style title-option" id="stealth-toggles" style="display:none;">
+    <label>
+      <input type="checkbox" id="stealth-realistic-headers" checked />
+      Realistic request headers
+    </label>
+    &nbsp;&nbsp;
+    <label>
+      <input type="checkbox" id="stealth-shuffle-paths" checked />
+      Shuffle probe order
+    </label>
+    &nbsp;&nbsp;
+    <label>
+      <input type="checkbox" id="stealth-rate-limit-backoff" checked />
+      Rate-limit protection
+    </label>
+  </div>
+
+  <!-- Relay server -->
+  <div class="browser-style title-option" id="stealth-relay-row" style="display:none;">
+    <label>
+      <input type="checkbox" id="stealth-relay-enabled" />
+      Route probes through relay server (Tier 2 IP masking)
+    </label>
+    <div id="stealth-relay-url-col" style="display:none; margin-top:6px;">
+      <label for="stealth-relay-url">Relay server URL</label>
+      <input type="url" id="stealth-relay-url" placeholder="http://your-relay:4001" class="browser-style input-text" style="width:250px;" />
+    </div>
+    <div id="stealth-relay-key-col" style="display:none; margin-top:6px;">
+      <label for="stealth-relay-api-key">Relay API key</label>
+      <input type="password" id="stealth-relay-api-key" placeholder="Bearer token" class="browser-style input-text" style="width:250px;" />
+    </div>
+  </div>
+
+  <div class="browser-style title-option" id="stealth-save-row" style="display:none;">
+    <button class="button" id="save-stealth-settings">Save stealth settings</button>
+    <span id="stealth-save-status" style="margin-left:10px;color:green;"></span>
+  </div>
+</section>
+<!-- VULNERABILITY INTELLIGENCE SETTINGS -->
+<section class="option" id="intel-section">
+  <div class="browser-style title-option" style="font-weight:bold; font-size:1.1em;">
+    Vulnerability Intelligence
+  </div>
+
+  <div class="browser-style title-option" style="font-size:13px;color:#555;">
+    Connect to an intelligence backend to receive dynamic vulnerability checks and AI-powered finding enrichment (CVE IDs, CVSS scores, remediation advice).
+  </div>
+
+  <div class="browser-style title-option">
+    <label for="intel-backend-url">Intelligence backend URL</label>
+    <input type="url" id="intel-backend-url" placeholder="http://localhost:4000" class="browser-style input-text" style="width:250px;" />
+  </div>
+
+  <div class="browser-style title-option">
+    <label for="intel-api-key">API key</label>
+    <input type="password" id="intel-api-key" placeholder="API key" class="browser-style input-text" style="width:250px;" />
+  </div>
+
+  <div class="browser-style title-option">
+    <button class="button" id="save-intel-settings">Save</button>
+    <button class="button" id="intel-refresh-now" style="margin-left:8px;">Sync checks now</button>
+    <button class="button" id="intel-force-resync" style="margin-left:8px;">Force full re-sync</button>
+    <span id="intel-save-status" style="margin-left:10px;color:green;"></span>
+  </div>
+
+  <div class="browser-style title-option" style="font-size:12px;color:#888;">
+    <span id="intel-last-sync-label"></span>
+    <span id="intel-check-count-label" style="margin-left:16px;"></span>
+  </div>
+</section>
 </body>
 </html>
