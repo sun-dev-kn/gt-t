@@ -2,7 +2,8 @@ module.exports = {
   sourceDir: '.',
   artifactsDir: '.web-ext-artifacts',
   run: {
-    firefox: 'firefoxdeveloperedition',
+    // Change to 'firefoxdeveloperedition' if you have Firefox Developer Edition installed locally.
+    firefox: 'firefox',
     startUrl: ['about:debugging#/runtime/this-firefox'],
     watchFiles: [
       'dotgit.js', 'content_script.js', 'manifest.json',

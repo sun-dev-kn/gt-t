@@ -34,8 +34,10 @@ router.get('/health', (req, res) => {
   const db = getDb();
   const count = db.prepare('SELECT COUNT(*) as n FROM intel_checks WHERE enabled = 1').get();
   res.json({
-    ok: true,
+    ok: !!process.env.INTEL_API_KEY,
     db_checks: count.n,
+    ai_provider: process.env.ANTHROPIC_API_KEY ? 'anthropic' : 'none',
+    telegram_enabled: !!(process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHANNELS),
     timestamp: new Date().toISOString(),
   });
 });

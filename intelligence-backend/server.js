@@ -8,9 +8,22 @@ import { startScheduler } from './services/scheduler.js';
 const PORT = parseInt(process.env.PORT || '4000', 10);
 const INTEL_API_KEY = process.env.INTEL_API_KEY || '';
 
-if (!INTEL_API_KEY) {
-  console.warn('[intel] WARNING: INTEL_API_KEY is not set. All /api/checks and /api/enrich requests will be rejected.');
+function validateStartupConfig() {
+  if (!process.env.INTEL_API_KEY) {
+    console.error('[intel] ✖  INTEL_API_KEY is not set — all API requests will be rejected (401)');
+  }
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.warn('[intel] ⚠  ANTHROPIC_API_KEY is not set — /api/enrich will fail');
+  }
+  if (process.env.TELEGRAM_BOT_TOKEN && !process.env.TELEGRAM_CHANNELS) {
+    console.warn('[intel] ⚠  TELEGRAM_BOT_TOKEN set but TELEGRAM_CHANNELS is empty — scheduler will not start');
+  }
+  if (!process.env.NOTIFY_TELEGRAM_BOT_TOKEN && !process.env.NOTIFY_SLACK_WEBHOOK_URL) {
+    console.info('[intel] ℹ  No push notification channels configured (NOTIFY_TELEGRAM_BOT_TOKEN / NOTIFY_SLACK_WEBHOOK_URL)');
+  }
 }
+
+validateStartupConfig();
 
 const app = express();
 app.use(express.json());
