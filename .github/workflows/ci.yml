@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [master, 'feat/**']
+  pull_request:
+    branches: [master]
+
+jobs:
+  test-workflow:
+    name: Workflow Designer Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: workflow/package-lock.json
+      - run: cd workflow && npm ci
+      - run: cd workflow && npm test
+
+  test-intel:
+    name: Intelligence Backend Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: intelligence-backend/package-lock.json
+      - run: cd intelligence-backend && npm ci
+      - run: cd intelligence-backend && npm test --if-present
+
+  lint-extension:
+    name: web-ext Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install -g web-ext
+      - run: web-ext lint --source-dir . --ignore-files 'workflow/**' 'relay-server/**' 'intelligence-backend/**' 'node_modules/**' '.git/**' 'docs/**'
