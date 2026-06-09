@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type React from 'react';
 import {
   ReactFlow,
@@ -10,65 +10,17 @@ import {
 import '@xyflow/react/dist/style.css';
 import { useWorkflowStore } from './store';
 import { nodeTypes } from './nodes';
+import { getDefaultData } from './nodes/defaults';
 import { edgeTypes } from './edges';
 import { NodeLibrary } from './components/NodeLibrary';
 import { Inspector } from './components/Inspector';
 import { Toolbar } from './components/Toolbar';
 import { RecordingPanel } from './components/RecordingPanel';
-import type { NodeData } from './types';
+import { NodeContextMenu, PaneContextMenu } from './components/ContextMenu';
 
-function getDefaultData(nodeType: string): NodeData | null {
-  switch (nodeType) {
-    case 'trigger': return { subtype: 'manual' };
-    case 'schedule': return { subtype: 'schedule', intervalHours: 24 };
-    case 'manual': return { subtype: 'manual' };
-    case 'navigate': return { subtype: 'navigate', url: '' };
-    case 'click': return { subtype: 'click', selector: '' };
-    case 'fill': return { subtype: 'fill', selector: '', value: '' };
-    case 'scroll': return { subtype: 'scroll', selector: '', direction: 'down', amount: 300 };
-    case 'hover': return { subtype: 'hover', selector: '' };
-    case 'waitForSelector': return { subtype: 'waitForSelector', selector: '', timeoutMs: 5000 };
-    case 'delay': return { subtype: 'delay', ms: 1000 };
-    case 'networkIdle': return { subtype: 'networkIdle' };
-    case 'extract': return { subtype: 'extract', fields: [], varName: '' };
-    case 'extractTable': return { subtype: 'extractTable', selector: '', varName: '' };
-    case 'condition': return { subtype: 'condition', variable: '', operator: '==', value: '' };
-    case 'loop': return { subtype: 'loop', maxIterations: 10, continueVariable: '' };
-    case 'merge': return { subtype: 'merge' };
-    case 'injectCredentials': return { subtype: 'injectCredentials' };
-    case 'switchAccount': return { subtype: 'switchAccount' };
-    case 'sendToBackend': return { subtype: 'sendToBackend' };
-    case 'saveLocally': return { subtype: 'saveLocally' };
-    case 'doubleClick':    return { subtype: 'doubleClick', selector: '' };
-    case 'rightClick':     return { subtype: 'rightClick', selector: '' };
-    case 'selectOption':   return { subtype: 'selectOption', selector: '', value: '' };
-    case 'check':          return { subtype: 'check', selector: '', checked: true };
-    case 'pressKey':       return { subtype: 'pressKey', key: 'Enter' };
-    case 'dragDrop':       return { subtype: 'dragDrop', sourceSelector: '', targetSelector: '' };
-    case 'uploadFile':     return { subtype: 'uploadFile', selector: '', fileName: '' };
-    case 'paste':          return { subtype: 'paste', selector: '', text: '' };
-    case 'waitForUrl':     return { subtype: 'waitForUrl', pattern: '', timeoutMs: 5000 };
-    case 'waitForVisible': return { subtype: 'waitForVisible', selector: '', visible: true, timeoutMs: 5000 };
-    case 'getCurrentUrl':  return { subtype: 'getCurrentUrl', varName: '' };
-    case 'getValue':       return { subtype: 'getValue', selector: '', varName: '' };
-    case 'screenshot':     return { subtype: 'screenshot', varName: '' };
-    case 'countElements':  return { subtype: 'countElements', selector: '', varName: '' };
-    case 'forEach':        return { subtype: 'forEach', listVar: '', itemVar: 'item' };
-    case 'tryCatch':       return { subtype: 'tryCatch' };
-    case 'setVariable':    return { subtype: 'setVariable', varName: '', value: '' };
-    case 'setArray':       return { subtype: 'setArray', varName: '', items: [] };
-    case 'setObject':      return { subtype: 'setObject', varName: '', pairs: [] };
-    case 'goBack':         return { subtype: 'goBack' };
-    case 'goForward':      return { subtype: 'goForward' };
-    case 'reload':         return { subtype: 'reload' };
-    case 'openTab':        return { subtype: 'openTab', url: '' };
-    case 'closeTab':       return { subtype: 'closeTab' };
-    case 'switchTab':      return { subtype: 'switchTab', urlPattern: '' };
-    case 'runScript':      return { subtype: 'runScript', script: '' };
-    case 'notifyUser':     return { subtype: 'notifyUser', title: '', message: '', waitForDismiss: false };
-    default: return null;
-  }
-}
+type CtxMenu =
+  | { kind: 'node'; x: number; y: number; nodeId: string }
+  | { kind: 'pane'; x: number; y: number; flowX: number; flowY: number };
 
 export default function App() {
   const {
@@ -84,6 +36,9 @@ export default function App() {
   } = useWorkflowStore();
 
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rfRef = useRef<any>(null);
+  const [ctxMenu, setCtxMenu] = useState<CtxMenu | null>(null);
 
   const onConnect: OnConnect = useCallback(
     (connection) => {
@@ -91,6 +46,29 @@ export default function App() {
     },
     [storeOnConnect],
   );
+
+  const onNodeContextMenu = useCallback((e: React.MouseEvent, node: { id: string }) => {
+    e.preventDefault();
+    setCtxMenu({ kind: 'node', x: e.clientX, y: e.clientY, nodeId: node.id });
+  }, []);
+
+  const onPaneContextMenu = useCallback((e: React.MouseEvent | MouseEvent) => {
+    e.preventDefault();
+    const evt = e as React.MouseEvent;
+    const flowPos = rfRef.current?.screenToFlowPosition({ x: evt.clientX, y: evt.clientY }) ?? { x: evt.clientX, y: evt.clientY };
+    setCtxMenu({ kind: 'pane', x: evt.clientX, y: evt.clientY, flowX: flowPos.x, flowY: flowPos.y });
+  }, []);
+
+  const handleAddFromContext = useCallback((subtype: string, flowX: number, flowY: number) => {
+    const defaultData = getDefaultData(subtype);
+    if (!defaultData) return;
+    addNode({
+      id: crypto.randomUUID(),
+      position: { x: flowX - 75, y: flowY - 20 },
+      data: defaultData,
+      type: subtype,
+    });
+  }, [addNode]);
 
   const onDragOver: React.DragEventHandler<HTMLDivElement> = useCallback((e) => {
     e.preventDefault();
@@ -154,8 +132,11 @@ export default function App() {
             onConnect={onConnect}
             onDrop={onDrop}
             onDragOver={onDragOver}
+            onInit={(instance) => { rfRef.current = instance; }}
             onNodeClick={(_, node) => setSelectedNodeId(node.id)}
-            onPaneClick={() => setSelectedNodeId(null)}
+            onPaneClick={() => { setSelectedNodeId(null); setCtxMenu(null); }}
+            onNodeContextMenu={onNodeContextMenu}
+            onPaneContextMenu={onPaneContextMenu}
             defaultEdgeOptions={{ type: 'typed' }}
             fitView
           >
@@ -171,6 +152,26 @@ export default function App() {
         <Inspector />
         <RecordingPanel />
       </div>
+
+      {ctxMenu?.kind === 'node' && (
+        <NodeContextMenu
+          x={ctxMenu.x}
+          y={ctxMenu.y}
+          nodeId={ctxMenu.nodeId}
+          onClose={() => setCtxMenu(null)}
+        />
+      )}
+      {ctxMenu?.kind === 'pane' && (
+        <PaneContextMenu
+          x={ctxMenu.x}
+          y={ctxMenu.y}
+          onAddNode={(subtype) => {
+            if (ctxMenu.kind !== 'pane') return;
+            handleAddFromContext(subtype, ctxMenu.flowX, ctxMenu.flowY);
+          }}
+          onClose={() => setCtxMenu(null)}
+        />
+      )}
     </div>
   );
 }

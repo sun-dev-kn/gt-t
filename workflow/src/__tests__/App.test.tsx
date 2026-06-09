@@ -16,10 +16,11 @@ vi.mock('@xyflow/react', () => ({
 }));
 
 // Mock child components
-vi.mock('../components/NodeLibrary', () => ({ NodeLibrary: () => <div data-testid="node-library" /> }));
+vi.mock('../components/NodeLibrary', () => ({ NodeLibrary: () => <div data-testid="node-library" />, NODE_TYPES: [] }));
 vi.mock('../components/Inspector', () => ({ Inspector: () => <div data-testid="inspector" /> }));
 vi.mock('../components/Toolbar', () => ({ Toolbar: () => <div data-testid="toolbar" /> }));
 vi.mock('../components/RecordingPanel', () => ({ RecordingPanel: () => null }));
+vi.mock('../components/ContextMenu', () => ({ NodeContextMenu: () => null, PaneContextMenu: () => null }));
 
 describe('App', () => {
   it('renders main layout components', () => {

@@ -44,6 +44,8 @@ interface WorkflowStore {
   // Node operations
   addNode: (node: WorkflowNode) => void;
   deleteNode: (id: string) => void;
+  duplicateNode: (id: string) => void;
+  disconnectNode: (id: string) => void;
   updateNodeData: (id: string, data: NodeData) => void;
 
   // Selection
@@ -57,6 +59,7 @@ interface WorkflowStore {
 
   // Recording
   recordingState: 'idle' | 'recording' | 'reviewing' | 'error';
+  recordingError: string | null;
   capturedEvents: RecordedEvent[];
   startRecording(): void;
   stopRecording(): void;
@@ -75,6 +78,7 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
   future: [],
   selectedNodeId: null,
   recordingState: 'idle' as const,
+  recordingError: null,
   capturedEvents: [],
 
   setWorkflowMeta(name, domain) {
@@ -173,6 +177,35 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
     });
   },
 
+  duplicateNode(id: string) {
+    const { nodes, edges, past } = get();
+    const src = nodes.find((n) => n.id === id);
+    if (!src) return;
+    const clone: WorkflowNode = {
+      ...src,
+      id: crypto.randomUUID(),
+      position: { x: src.position.x + 40, y: src.position.y + 40 },
+      data: structuredClone(src.data),
+      selected: false,
+    };
+    set({
+      past: [...past, { nodes: structuredClone(nodes), edges: structuredClone(edges) }].slice(-50),
+      future: [],
+      nodes: [...nodes, clone],
+    });
+  },
+
+  disconnectNode(id: string) {
+    const { nodes, edges, past } = get();
+    const filtered = edges.filter((e) => e.source !== id && e.target !== id);
+    if (filtered.length === edges.length) return;
+    set({
+      past: [...past, { nodes: structuredClone(nodes), edges: structuredClone(edges) }].slice(-50),
+      future: [],
+      edges: filtered,
+    });
+  },
+
   updateNodeData(id: string, data: NodeData) {
     set({
       nodes: get().nodes.map((n) =>
@@ -207,21 +240,27 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
       _recordingPort = null;
     }
     const { workflowDomain } = get();
+
+    if (!workflowDomain?.trim()) {
+      set({ recordingState: 'error', recordingError: 'no_domain' });
+      return;
+    }
+
     // Prefer browser (Firefox native) over chrome (Chrome / compatibility alias).
     // chrome.runtime can be undefined in Firefox extension pages even when browser.runtime is available.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const runtime = (globalThis as any).browser?.runtime ?? (globalThis as any).chrome?.runtime;
     if (!runtime) {
       console.error('[DotGit] Extension runtime not available. Open the workflow designer from the extension.');
-      set({ recordingState: 'error' });
+      set({ recordingState: 'error', recordingError: 'no_runtime' });
       return;
     }
-    set({ recordingState: 'recording', capturedEvents: [] });
+    set({ recordingState: 'recording', recordingError: null, capturedEvents: [] });
     try {
       _recordingPort = runtime.connect({ name: 'designer-relay' });
     } catch (err) {
       console.error('[DotGit] Failed to connect to background script:', err);
-      set({ recordingState: 'error' });
+      set({ recordingState: 'error', recordingError: 'connect_failed' });
       return;
     }
     _recordingPort.onMessage.addListener((msg: { type: string; event?: RecordedEvent; events?: RecordedEvent[]; reason?: string }) => {
@@ -232,16 +271,16 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
         set({ capturedEvents: msg.events, recordingState: 'reviewing' });
       }
       if (msg.type === 'RECORDING_ERROR') {
-        set({ recordingState: 'error' });
+        set({ recordingState: 'error', recordingError: msg.reason ?? 'unknown' });
       }
     });
     _recordingPort.onDisconnect.addListener(() => {
       _recordingPort = null;
       if (get().recordingState === 'recording') {
-        set({ recordingState: 'error' });
+        set({ recordingState: 'error', recordingError: 'disconnected' });
       }
     });
-    _recordingPort.postMessage({ type: 'RECORDING_START', domain: workflowDomain || 'about:blank' });
+    _recordingPort.postMessage({ type: 'RECORDING_START', domain: workflowDomain });
   },
 
   stopRecording() {
@@ -259,11 +298,12 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
       edges: [...existingEdges, ...newEdges],
       capturedEvents: [],
       recordingState: 'idle',
+      recordingError: null,
     });
   },
 
   discardRecording() {
-    set({ capturedEvents: [], recordingState: 'idle' });
+    set({ capturedEvents: [], recordingState: 'idle', recordingError: null });
   },
 
   resetWorkflow() {

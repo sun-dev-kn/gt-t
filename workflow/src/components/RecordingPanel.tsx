@@ -60,8 +60,16 @@ function EventRow({ event, checked, onToggle, reviewMode }: EventRowProps) {
   );
 }
 
+const ERROR_MESSAGES: Record<string, string> = {
+  no_domain: 'No domain set — enter a domain (e.g. example.com) in the toolbar.',
+  no_runtime: 'Extension runtime unavailable. Open this page from the extension popup.',
+  connect_failed: 'Could not connect to extension background. Try reloading.',
+  tab_create_failed: 'Failed to open the recording tab. Check the domain is correct.',
+  disconnected: 'Recording ended — tab was closed.',
+};
+
 export function RecordingPanel() {
-  const { recordingState, capturedEvents, importRecording, discardRecording } = useWorkflowStore();
+  const { recordingState, recordingError, capturedEvents, importRecording, discardRecording } = useWorkflowStore();
   const [checked, setChecked] = useState<boolean[]>([]);
 
   useEffect(() => {
@@ -99,7 +107,7 @@ export function RecordingPanel() {
       {/* Error banner */}
       {recordingState === 'error' && (
         <div style={{ background: '#450a0a', borderBottom: '1px solid #7f1d1d', padding: '6px 10px', fontSize: 11, color: '#f87171' }}>
-          Recording ended — tab was closed.
+          {recordingError ? (ERROR_MESSAGES[recordingError] ?? `Recording failed (${recordingError}).`) : 'Recording failed.'}
         </div>
       )}
 

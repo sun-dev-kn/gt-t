@@ -7,7 +7,7 @@ interface NodeTypeEntry {
   color: string;
 }
 
-const NODE_TYPES: NodeTypeEntry[] = [
+export const NODE_TYPES: NodeTypeEntry[] = [
   { type: 'schedule',          label: 'Schedule',           category: 'Trigger',  color: '#10b981' },
   { type: 'manual',            label: 'Manual',             category: 'Trigger',  color: '#10b981' },
   { type: 'navigate',          label: 'Navigate',           category: 'Browser',  color: '#3b82f6' },
