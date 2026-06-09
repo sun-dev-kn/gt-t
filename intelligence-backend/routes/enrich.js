@@ -33,6 +33,21 @@ router.post('/enrich', enrichLimiter, async (req, res) => {
     }
 
     res.json(enrichment);
+
+    // Fire-and-forget push notification for high/critical findings
+    const notifySeverities = new Set(['critical', 'high']);
+    const reqSeverity = (req.body.severity || '').toLowerCase();
+    const cvssHigh = (enrichment?.cvss_score ?? 0) >= 7;
+    if (notifySeverities.has(reqSeverity) || cvssHigh) {
+      import('../services/notifier.js').then(({ notifyFinding }) => {
+        notifyFinding({
+          checkId: req.body.check_id || 'unknown',
+          siteUrl: req.body.site_url || '',
+          severity: reqSeverity || (cvssHigh ? 'high' : 'unknown'),
+          enrichment,
+        }).catch(err => console.error('[enrich] notify error:', err.message));
+      });
+    }
   } catch (err) {
     console.error('[enrich route]', err);
     res.status(500).json({ error: 'Internal server error' });
