@@ -1,105 +1,11 @@
+import { FINDING_PATH_MAP, getFindingPath } from "/lib/finding-paths.js";
+
 // add "view-source:" only in firefox, because chrome give this error: Not allowed to load local resource
 let HREF_PREFIX = "";
 if (typeof browser !== "undefined") {
     HREF_PREFIX = "view-source:";
 }
 
-// Maps finding type to the path suffix for building viewable links
-const FINDING_LINK_MAP = {
-    "git": "/.git/config",
-    "svn": "/.svn/",
-    "hg": "/.hg/",
-    "env": "/.env",
-    "ds_store": "/.DS_Store",
-    "cvs": "/CVS/",
-    "bzr": "/.bzr/",
-    "svn_entries": "/.svn/entries",
-    "env_local": "/.env.local",
-    "env_production": "/.env.production",
-    "env_backup": "/.env.backup",
-    "env_dev": "/.env.dev",
-    "npmrc": "/.npmrc",
-    "dockerenv": "/.dockerenv",
-    "docker_compose": "/docker-compose.yml",
-    "dockerfile": "/Dockerfile",
-    "wp_config": "/wp-config.php",
-    "composer_auth": "/auth.json",
-    "firebase": "/firebase.json",
-    "terraform_state": "/terraform.tfstate",
-    "terraform_vars": "/terraform.tfvars",
-    "rails_secrets": "/config/database.yml",
-    "django_settings": "/settings.py",
-    "laravel_log": "/storage/logs/laravel.log",
-    "ssh_keys": "/.ssh/",
-    "aws_credentials": "/.aws/credentials",
-    "kube_config": "/.kube/config",
-    "sql_dump": "/dump.sql",
-    "backup_archive": "/backup.zip",
-    "php_backup": "/config.php.bak",
-    "htaccess_backup": "/.htaccess.bak",
-    "web_config_backup": "/web.config.bak",
-    "phpinfo": "/phpinfo.php",
-    "php_errors": "/error_log",
-    "adminer": "/adminer.php",
-    "phpmyadmin": "/phpmyadmin/",
-    "spring_actuator": "/actuator",
-    "symfony_profiler": "/_profiler/",
-    "laravel_telescope": "/telescope",
-    "rails_info": "/rails/info/properties",
-    "django_debug": "/__debug__/",
-    "elmah": "/elmah.axd",
-    "grafana": "/metrics",
-    "htaccess": "/.htaccess",
-    "htpasswd": "/.htpasswd",
-    "nginx_conf": "/nginx.conf",
-    "server_status": "/server-status",
-    "nginx_status": "/nginx_status",
-    "web_config": "/web.config",
-    "crossdomain": "/crossdomain.xml",
-    "robots_txt": "/robots.txt",
-    "swagger": "/swagger.json",
-    "graphql": "/graphql",
-    "wsdl": "/service.wsdl",
-    "wp_login": "/wp-login.php",
-    "wp_xmlrpc": "/xmlrpc.php",
-    "wp_user_enum": "/wp-json/wp/v2/users",
-    "joomla": "/administrator/",
-    "drupal": "/CHANGELOG.txt",
-    "magento": "/app/etc/local.xml",
-    "jenkinsfile": "/Jenkinsfile",
-    "gitlab_ci": "/.gitlab-ci.yml",
-    "travis_ci": "/.travis.yml",
-    "github_actions": "/.github/workflows/",
-    "circleci": "/.circleci/config.yml",
-    "package_json": "/package.json",
-    "package_lock": "/package-lock.json",
-    "composer_json": "/composer.json",
-    "gemfile": "/Gemfile",
-    "requirements_txt": "/requirements.txt",
-    "pom_xml": "/pom.xml",
-    "cargo_toml": "/Cargo.toml",
-    "go_sum": "/go.sum",
-    "dir_listing": "/",
-    "source_maps": "/main.js.map",
-    "sitemap": "/sitemap.xml",
-    "app_settings": "/application.properties",
-    "config_json": "/config.json",
-    "config_php": "/config.php",
-    "pem_keys": "/keys.pem",
-    "google_cloud": "/google-cloud.json",
-    "gitignore": "/.gitignore",
-    "admin_panel": "/admin/",
-    "debug_dirs": "/debug/",
-    "log_files": "/access.log",
-    "api_config": "/api/config",
-    "client_access_policy": "/clientaccesspolicy.xml",
-    "readme_docs": "/README.md",
-    "csv_export": "/export.csv"
-};
-
-function getFindingLink(type) {
-    return FINDING_LINK_MAP[type] || ("/" + type);
-}
 
 const SEVERITY_COLORS = {
     "critical": "#f44336",
@@ -327,7 +233,7 @@ function addElements(element, array, callback, downloading, max_sites) {
         }
 
         // Set the link using the dynamic finding link map
-        link.setAttribute("href", HREF_PREFIX + callback(array[i].url) + getFindingLink(findingType));
+        link.setAttribute("href", HREF_PREFIX + callback(array[i].url) + getFindingPath(findingType));
         link.innerText = callback(array[i].url);
 
         spanLink.appendChild(link);
