@@ -78,6 +78,15 @@ document.addEventListener("DOMContentLoaded", function () {
     chrome.storage.local.get(["options"], function (result) {
         set_gui(result.options);
 
+        const syncEl = document.getElementById('sync-settings');
+        if (syncEl) {
+          syncEl.checked = !!result.options.syncSettings;
+          syncEl.addEventListener('change', function() {
+            result.options.syncSettings = this.checked;
+            chrome.storage.local.set({ options: result.options });
+          });
+        }
+
         document.addEventListener("change", (e) => {
             // Handle function toggles dynamically
             if (FUNCTION_IDS.includes(e.target.name)) {

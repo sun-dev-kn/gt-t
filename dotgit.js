@@ -130,7 +130,36 @@ const DEFAULT_OPTIONS = {
         "relayUrl": "",
         "relayApiKey": "",
     },
+    "syncSettings": false,  // when true, settings are also mirrored to chrome.storage.sync
 };
+
+async function saveOptions(opts) {
+  await chrome.storage.local.set({ options: opts });
+  if (opts.syncSettings) {
+    const { syncSettings, color, max_sites, notification, check_opensource,
+            check_securitytxt, debug, check_failed, blacklist, stealth } = opts;
+    try {
+      await chrome.storage.sync.set({ options: {
+        syncSettings, color, max_sites, notification, check_opensource,
+        check_securitytxt, debug, check_failed, blacklist, stealth,
+      }});
+    } catch (e) {
+      debugLog('[dotgit] sync storage write failed:', e.message);
+    }
+  }
+}
+
+async function loadOptions() {
+  const local = await chrome.storage.local.get(['options']);
+  const base = { ...DEFAULT_OPTIONS, ...(local.options || {}) };
+  if (base.syncSettings) {
+    try {
+      const synced = await chrome.storage.sync.get(['options']);
+      if (synced.options) return { ...base, ...synced.options };
+    } catch {}
+  }
+  return base;
+}
 
 
 const EXTENSION_ICON = {
@@ -731,9 +760,14 @@ chrome.storage.local.get(["checked", "withExposedGit", "options", "intelSettings
         chrome.storage.local.set({withExposedGit: result.withExposedGit});
     }
 
-    chrome.storage.local.set({options: checkOptions(DEFAULT_OPTIONS, result.options)});
+    const mergedOptions = checkOptions(DEFAULT_OPTIONS, result.options);
+    chrome.storage.local.set({options: mergedOptions});
 
-    set_options(result.options);
+    loadOptions().then(resolvedOptions => {
+        set_options(resolvedOptions);
+    }).catch(() => {
+        set_options(mergedOptions);
+    });
 
     // Add listener for completed requests
     chrome.webRequest.onCompleted.addListener(
