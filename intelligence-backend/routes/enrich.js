@@ -1,9 +1,18 @@
 import { Router } from 'express';
 import { enrichFinding } from '../services/enricher.js';
+import rateLimit from 'express-rate-limit';
 
 const router = Router();
 
-router.post('/enrich', async (req, res) => {
+const enrichLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many enrichment requests, please try again later.' },
+});
+
+router.post('/enrich', enrichLimiter, async (req, res) => {
   const { check_id, check_label, site_url, matched_path, response_snippet } = req.body;
 
   if (!check_id || !site_url || !matched_path) {
