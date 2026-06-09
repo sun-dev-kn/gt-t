@@ -23,6 +23,42 @@ const SEVERITY_LABELS = {
 
 let debug = false;
 
+function exportJSON(findings) {
+  const blob = new Blob([JSON.stringify(findings, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'dotgit-findings-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function exportCSV(findings) {
+  const headers = ['url', 'type', 'severity', 'foundAt', 'cve_id', 'cvss_score', 'remediation'];
+  const escape = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+  const rows = findings.map(f => [
+    f.url || '',
+    f.type || '',
+    f.severity || '',
+    f.foundAt || '',
+    f.enrichment?.cve_id || '',
+    f.enrichment?.cvss_score ?? '',
+    f.enrichment?.remediation || '',
+  ].map(escape).join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'dotgit-findings-' + new Date().toISOString().slice(0, 10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 function debugLog(...args) {
     if (debug) {
         console.log('[DotGit]', ...args);
@@ -338,6 +374,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 }, [], max_sites);
             }
         }
+
+        const findings = visitedSite.withExposedGit ?? [];
+        document.getElementById('export-json')?.addEventListener('click', () => exportJSON(findings));
+        document.getElementById('export-csv')?.addEventListener('click', () => exportCSV(findings));
     });
 });
 
