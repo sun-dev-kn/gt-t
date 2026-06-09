@@ -1,0 +1,16 @@
+{
+  "name": "dotgit-dev",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DotGit browser extension dev tooling",
+  "scripts": {
+    "dev:ext": "web-ext run --config .web-ext.config.cjs",
+    "dev:ext:chrome": "web-ext run --config .web-ext.config.cjs --target chromium",
+    "dev:workflow": "cd workflow && npm run dev",
+    "dev:recorder:watch": "cd workflow && npm run build:recorder:watch",
+    "dev": "npm run dev:ext"
+  },
+  "devDependencies": {
+    "web-ext": "^8.3.0"
+  }
+}

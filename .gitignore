@@ -1,3 +1,5 @@
 .idea
 workflow/node_modules/
 workflow/dist/
+.web-ext-artifacts/
+node_modules/
