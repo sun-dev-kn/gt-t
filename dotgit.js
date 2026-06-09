@@ -4,6 +4,7 @@ import { runScrapeCycle } from "/scraper/orchestrate.js";
 import { ensureAllContainers } from "/scraper/containers.js";
 
 const ALARM_NAME = "dotgit-scraper-12h";
+const INTEL_ALARM_NAME = "dotgit-intel-6h";
 
 const DEFAULT_OPTIONS = {
     "functions": {
@@ -115,7 +116,19 @@ const DEFAULT_OPTIONS = {
     },
     "blacklist": [
         'localhost'
-    ]
+    ],
+    "stealth": {
+        "enabled": false,
+        "mode": "parallel",
+        "minDelay": 500,
+        "maxDelay": 3000,
+        "realisticHeaders": true,
+        "shufflePaths": true,
+        "rateLimitBackoff": true,
+        "relayEnabled": false,
+        "relayUrl": "",
+        "relayApiKey": "",
+    },
 };
 
 // Maps finding type to the path used for display in findings list
@@ -270,6 +283,7 @@ let check_failed;
 let blacklist = [];
 let processingUrls = new Set();
 let debug = false;
+let intelSettings = {};
 
 // ─── Recording state ──────────────────────────────────────────────────────────
 const recording = {
@@ -649,6 +663,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
                     await chrome.storage.local.set({withExposedGit});
                     await setBadge();
 
+                    // Fire enrichment for each new finding (fire-and-forget)
+                    for (const finding of newFindings) {
+                        enrichFinding(origin, finding.type, getFindingPath(finding.type)).catch(() => {});
+                    }
+
                     // Show a single notification with all findings
                     if (newFindings.length > 0) {
                         const title = newFindings.length === 1
@@ -768,11 +787,24 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         return false;
     }
 
+    if (msg.type === "INTEL_SETTINGS_UPDATED") {
+        intelSettings = msg.settings || {};
+        sendResponse({ ok: true });
+        return false;
+    }
+
+    if (msg.type === "INTEL_REFRESH_NOW") {
+        fetchIntelligenceUpdates().catch(() => {});
+        sendResponse({ ok: true });
+        return false;
+    }
+
     return false;
 });
 
 
-chrome.storage.local.get(["checked", "withExposedGit", "options"], function (result) {
+chrome.storage.local.get(["checked", "withExposedGit", "options", "intelSettings"], function (result) {
+    intelSettings = result.intelSettings || {};
     // Initialize the saved stats if not yet initialized.
     if (typeof result.checked === "undefined") {
         result = {
@@ -908,15 +940,104 @@ async function processListener(details) {
             await new Promise(resolve => setTimeout(resolve, 100));
         }
 
+        const dynResult = await chrome.storage.local.get(["dynamicChecks"]);
         await chrome.tabs.sendMessage(tabReady.id, {
             type: "CHECK_SITE",
             url: origin,
-            options: options
+            options: options,
+            dynamicChecks: dynResult.dynamicChecks || []
         });
     } catch (error) {
         debugLog('Error in processListener:', error);
     } finally {
         processingUrls.delete(origin);
+    }
+}
+
+
+async function fetchIntelligenceUpdates() {
+    const result = await chrome.storage.local.get(["intelSettings", "intelLastFetch"]);
+    const settings = result.intelSettings || intelSettings;
+    if (!settings?.intelBackendUrl || !settings?.intelApiKey) {
+        debugLog('Intel: no backend configured, skipping update');
+        return;
+    }
+
+    const since = result.intelLastFetch || 0;
+    debugLog('Intel: fetching checks since', new Date(since).toISOString());
+
+    let data;
+    try {
+        const res = await fetch(
+            `${settings.intelBackendUrl}/api/checks?since=${since}`,
+            { headers: { "Authorization": `Bearer ${settings.intelApiKey}` } }
+        );
+        if (!res.ok) {
+            debugLog('Intel: fetch failed with status', res.status);
+            return;
+        }
+        data = await res.json();
+    } catch (err) {
+        debugLog('Intel: fetch error', err.message);
+        return;
+    }
+
+    const stored = await chrome.storage.local.get(["dynamicChecks"]);
+    let dynamicChecks = stored.dynamicChecks || [];
+
+    if (data.deleted_ids?.length) {
+        dynamicChecks = dynamicChecks.filter(c => !data.deleted_ids.includes(c.id));
+    }
+
+    for (const check of (data.checks || [])) {
+        const idx = dynamicChecks.findIndex(c => c.id === check.id);
+        if (idx >= 0) dynamicChecks[idx] = check;
+        else dynamicChecks.push(check);
+    }
+
+    await chrome.storage.local.set({
+        dynamicChecks,
+        intelLastFetch: Date.now(),
+        intelChecksVersion: data.version,
+    });
+    debugLog('Intel: updated', data.checks?.length || 0, 'checks, total:', dynamicChecks.length);
+}
+
+
+async function enrichFinding(siteUrl, checkId, matchedPath) {
+    const result = await chrome.storage.local.get(["intelSettings"]);
+    const settings = result.intelSettings || intelSettings;
+    if (!settings?.intelBackendUrl || !settings?.intelApiKey) return;
+
+    debugLog('Intel: enriching finding', checkId, 'for', siteUrl);
+    let enrichment;
+    try {
+        const res = await fetch(`${settings.intelBackendUrl}/api/enrich`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${settings.intelApiKey}`,
+            },
+            body: JSON.stringify({
+                check_id: checkId,
+                site_url: siteUrl,
+                matched_path: matchedPath,
+            }),
+        });
+        if (!res.ok) return;
+        enrichment = await res.json();
+    } catch (err) {
+        debugLog('Intel: enrich error', err.message);
+        return;
+    }
+
+    const stored = await chrome.storage.local.get(["withExposedGit"]);
+    const list = stored.withExposedGit || [];
+    const idx = list.findIndex(f => f.url === siteUrl && f.type === checkId);
+    if (idx >= 0 && enrichment) {
+        list[idx].enrichment = enrichment;
+        await chrome.storage.local.set({ withExposedGit: list });
+        debugLog('Intel: enrichment stored for', checkId, 'at', siteUrl);
     }
 }
 
@@ -962,6 +1083,8 @@ chrome.runtime.onInstalled.addListener(async (details) => {
         }
     }
     browser.alarms.create(ALARM_NAME, { periodInMinutes: 720 });
+    browser.alarms.create(INTEL_ALARM_NAME, { periodInMinutes: 360 });
+    fetchIntelligenceUpdates().catch(() => {});
     ensureAllContainers();
 });
 
@@ -977,6 +1100,9 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 browser.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === ALARM_NAME) {
         runScrapeCycle().catch(() => {});
+    }
+    if (alarm.name === INTEL_ALARM_NAME) {
+        fetchIntelligenceUpdates().catch(() => {});
     }
 });
 
@@ -1002,21 +1128,39 @@ chrome.runtime.onConnect.addListener((port) => {
     recording.designerPort = port;
     port.onMessage.addListener((msg) => {
       if (msg.type === 'RECORDING_START') {
+        const domain = (msg.domain || '').trim();
+        if (!domain) {
+          port.postMessage({ type: 'RECORDING_ERROR', reason: 'no_domain' });
+          return;
+        }
         recording.active = true;
         recording.events = [];
-        const domain = msg.domain || 'about:blank';
-        const url = domain.startsWith('http') ? domain : `https://${domain}`;
-        chrome.tabs.create({ url }, (tab) => {
-          recording.tabId = tab.id;
-          // Wait for tab to finish loading before activating recorder
-          const listener = (tabId, info) => {
-            if (tabId === recording.tabId && info.status === 'complete') {
-              chrome.tabs.onUpdated.removeListener(listener);
-              chrome.tabs.sendMessage(recording.tabId, { type: 'RECORDER_ACTIVATE' }).catch(() => {});
+        const url = /^https?:\/\//i.test(domain) ? domain : `https://${domain}`;
+        chrome.tabs.create({ url })
+          .then((tab) => {
+            if (!tab?.id) {
+              recording.active = false;
+              recording.designerPort?.postMessage({ type: 'RECORDING_ERROR', reason: 'tab_create_failed' });
+              return;
             }
-          };
-          chrome.tabs.onUpdated.addListener(listener);
-        });
+            recording.tabId = tab.id;
+            const onUpdated = (tabId, info) => {
+              if (tabId !== recording.tabId || info.status !== 'complete') return;
+              chrome.tabs.onUpdated.removeListener(onUpdated);
+              // Small delay ensures content script listener is registered before we send
+              setTimeout(() => {
+                if (recording.tabId !== null) {
+                  chrome.tabs.sendMessage(recording.tabId, { type: 'RECORDER_ACTIVATE' }).catch(() => {});
+                }
+              }, 300);
+            };
+            chrome.tabs.onUpdated.addListener(onUpdated);
+          })
+          .catch((err) => {
+            console.error('[DotGit] tabs.create failed:', err);
+            recording.active = false;
+            recording.designerPort?.postMessage({ type: 'RECORDING_ERROR', reason: 'tab_create_failed' });
+          });
       }
 
       if (msg.type === 'RECORDING_STOP') {
