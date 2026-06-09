@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import fetch from 'node-fetch';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -30,7 +31,6 @@ export async function callAI(prompt, useEnrichModel = false) {
 }
 
 async function callOpenAI(prompt) {
-  const { default: fetch } = await import('node-fetch');
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {

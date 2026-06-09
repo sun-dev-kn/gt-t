@@ -10,7 +10,7 @@ export async function pollChannel(botToken, channelId) {
 
   let data;
   try {
-    const res = await fetch(url, { timeout: 15000 });
+    const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
     data = await res.json();
   } catch (err) {
     console.error('[telegram] Poll failed:', err.message);

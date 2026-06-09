@@ -6,6 +6,9 @@ const router = Router();
 
 // Admin auth middleware — requires ADMIN_API_KEY env var
 router.use((req, res, next) => {
+  // Health check is public
+  if (req.path === '/health' && req.method === 'GET') return next();
+
   const adminKey = process.env.ADMIN_API_KEY || process.env.INTEL_API_KEY;
   const auth = req.headers['authorization'];
   if (!adminKey || !auth || auth !== `Bearer ${adminKey}`) {
