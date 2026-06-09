@@ -211,6 +211,59 @@ function addElements(element, array, callback, downloading, max_sites) {
         spanSeverity.appendChild(severityBadge);
         listItem.appendChild(spanSeverity);
 
+        // Enrichment badges — only shown if enrichment data exists
+        if (array[i].enrichment) {
+            const enr = array[i].enrichment;
+
+            // CVE badge (purple)
+            if (enr.cve_id) {
+                const spanCve = document.createElement("span");
+                spanCve.setAttribute("class", "secondary-content");
+                const cveBadge = document.createElement("span");
+                cveBadge.style.cssText = 'background:#9c27b0;color:#fff;padding:2px 5px;border-radius:3px;font-size:9px;font-weight:bold;margin-right:3px;cursor:default;';
+                cveBadge.title = enr.ai_summary || 'Vulnerability intelligence';
+                cveBadge.textContent = enr.cve_id;
+                spanCve.appendChild(cveBadge);
+                listItem.appendChild(spanCve);
+            }
+
+            // CVSS score badge (color-coded by severity)
+            if (enr.cvss_score != null) {
+                const score = parseFloat(enr.cvss_score);
+                const bgColor = score >= 9 ? '#f44336'
+                              : score >= 7 ? '#ff9800'
+                              : score >= 4 ? '#ffeb3b'
+                              : '#4caf50';
+                const txtColor = score >= 4 ? '#fff' : '#000';
+                const spanCvss = document.createElement("span");
+                spanCvss.setAttribute("class", "secondary-content");
+                const cvssBadge = document.createElement("span");
+                cvssBadge.style.cssText = `background:${bgColor};color:${txtColor};padding:2px 5px;border-radius:3px;font-size:9px;font-weight:bold;margin-right:3px;cursor:default;`;
+                cvssBadge.title = enr.cvss_vector || `CVSS score: ${score}`;
+                cvssBadge.textContent = 'CVSS ' + score.toFixed(1);
+                spanCvss.appendChild(cvssBadge);
+                listItem.appendChild(spanCvss);
+            }
+
+            // Remediation icon (green wrench, links to first reference)
+            if (enr.remediation) {
+                const spanFix = document.createElement("span");
+                spanFix.setAttribute("class", "secondary-content");
+                const fixLink = document.createElement("a");
+                const firstRef = (enr.references || [])[0];
+                if (firstRef) {
+                    fixLink.href = firstRef;
+                    fixLink.target = '_blank';
+                    fixLink.rel = 'noopener noreferrer';
+                }
+                fixLink.style.cssText = 'color:#4caf50;font-size:11px;font-weight:bold;margin-right:4px;text-decoration:none;cursor:pointer;';
+                fixLink.title = enr.remediation;
+                fixLink.textContent = '🔧';
+                spanFix.appendChild(fixLink);
+                listItem.appendChild(spanFix);
+            }
+        }
+
         const spanSecuritytxtStatus = document.createElement("span");
         spanSecuritytxtStatus.setAttribute("class", "secondary-content");
         const securitytxtStatus = document.createElement("a");
